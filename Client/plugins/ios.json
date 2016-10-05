@@ -1,0 +1,23 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {}
+    },
+    "installed_plugins": {
+        "cordova-plugin-whitelist": {
+            "PACKAGE_NAME": "com.coman3.TextIt"
+        },
+        "phonegap-facebook-plugin": {
+            "APP_ID": "919107394818471",
+            "APP_NAME": "Texting Games",
+            "PACKAGE_NAME": "com.coman3.TextIt"
+        },
+        "cordova-plugin-statusbar": {
+            "PACKAGE_NAME": "com.coman3.TextIt"
+        }
+    },
+    "dependent_plugins": {}
+}
