@@ -2,7 +2,6 @@
 <widget id="com.coman3.TextIt" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Text It</name>
     <description>
-        
     </description>
     <author email="lvelden1@gmail.com" href="http://coman3.me">
         Apache Cordova Team
@@ -25,4 +24,8 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
+    <plugin name="cordova-plugin-facebook4" spec="https://github.com/jeduan/cordova-plugin-facebook4">
+        <variable name="APP_ID" value="919107394818471" />
+        <variable name="APP_NAME" value="Text It" />
+    </plugin>
 </widget>

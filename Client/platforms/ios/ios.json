@@ -9,6 +9,18 @@
                 "parents": {
                     "/*": [
                         {
+                            "xml": "<feature name=\"StatusBar\"><param name=\"ios-package\" value=\"CDVStatusBar\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<preference name=\"StatusBarOverlaysWebView\" value=\"true\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<preference name=\"StatusBarStyle\" value=\"lightcontent\" />",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"FacebookConnectPlugin\"><param name=\"ios-package\" value=\"FacebookConnectPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
                             "count": 1
                         },
@@ -35,18 +47,6 @@
                         {
                             "xml": "<access origin=\"https://*.akamaihd.net\" />",
                             "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"StatusBar\"><param name=\"ios-package\" value=\"CDVStatusBar\" /><param name=\"onload\" value=\"true\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<preference name=\"StatusBarOverlaysWebView\" value=\"true\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<preference name=\"StatusBarStyle\" value=\"lightcontent\" />",
-                            "count": 1
                         }
                     ]
                 }
@@ -61,7 +61,7 @@
                     ],
                     "FacebookDisplayName": [
                         {
-                            "xml": "<string>Texting Games</string>",
+                            "xml": "<string>Text It</string>",
                             "count": 1
                         }
                     ],
@@ -70,31 +70,38 @@
                             "xml": "<array><dict><key>CFBundleURLSchemes</key><array><string>fb919107394818471</string></array></dict></array>",
                             "count": 1
                         }
+                    ],
+                    "NSAppTransportSecurity": [
+                        {
+                            "xml": "<dict><key>NSExceptionDomains</key><dict><key>facebook.com</key><dict><key>NSIncludesSubdomains</key><true /><key>NSThirdPartyExceptionRequiresForwardSecrecy</key><false /></dict><key>fbcdn.net</key><dict><key>NSIncludesSubdomains</key><true /><key>NSThirdPartyExceptionRequiresForwardSecrecy</key><false /></dict><key>akamaihd.net</key><dict><key>NSIncludesSubdomains</key><true /><key>NSThirdPartyExceptionRequiresForwardSecrecy</key><false /></dict></dict></dict>",
+                            "count": 1
+                        }
+                    ],
+                    "LSApplicationQueriesSchemes": [
+                        {
+                            "xml": "<array><string>fbapi</string><string>fb-messenger-api</string><string>fbauth2</string><string>fbshareextension</string></array>",
+                            "count": 1
+                        }
                     ]
                 }
             }
         }
     },
     "installed_plugins": {
-        "phonegap-facebook-plugin": {
-            "APP_ID": "919107394818471",
-            "APP_NAME": "Texting Games",
+        "cordova-plugin-statusbar": {
             "PACKAGE_NAME": "com.coman3.TextIt"
         },
-        "cordova-plugin-statusbar": {
+        "cordova-plugin-whitelist": {
+            "PACKAGE_NAME": "com.coman3.TextIt"
+        },
+        "cordova-plugin-facebook4": {
+            "APP_ID": "919107394818471",
+            "APP_NAME": "Text It",
             "PACKAGE_NAME": "com.coman3.TextIt"
         }
     },
     "dependent_plugins": {},
     "modules": [
-        {
-            "id": "phonegap-facebook-plugin.FacebookConnectPlugin",
-            "file": "plugins/phonegap-facebook-plugin/facebookConnectPlugin.js",
-            "pluginId": "phonegap-facebook-plugin",
-            "clobbers": [
-                "facebookConnectPlugin"
-            ]
-        },
         {
             "id": "cordova-plugin-statusbar.statusbar",
             "file": "plugins/cordova-plugin-statusbar/www/statusbar.js",
@@ -102,10 +109,19 @@
             "clobbers": [
                 "window.StatusBar"
             ]
+        },
+        {
+            "id": "cordova-plugin-facebook4.FacebookConnectPlugin",
+            "file": "plugins/cordova-plugin-facebook4/www/facebook-native.js",
+            "pluginId": "cordova-plugin-facebook4",
+            "clobbers": [
+                "facebookConnectPlugin"
+            ]
         }
     ],
     "plugin_metadata": {
-        "phonegap-facebook-plugin": "0.12.0",
-        "cordova-plugin-statusbar": "2.2.0"
+        "cordova-plugin-statusbar": "2.2.0",
+        "cordova-plugin-whitelist": "1.3.0",
+        "cordova-plugin-facebook4": "1.7.4"
     }
 }

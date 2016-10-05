@@ -49,13 +49,32 @@
     <true/>
     <key>NSAppTransportSecurity</key>
     <dict>
+      <key>NSExceptionDomains</key>
+      <dict>
+        <key>m.facebook.com</key>
+        <dict/>
+        <key>graph.facebook.com</key>
+        <dict/>
+        <key>api.facebook.com</key>
+        <dict/>
+        <key>fbcdn.net</key>
+        <dict>
+          <key>NSIncludesSubdomains</key>
+          <true/>
+        </dict>
+        <key>akamaihd.net</key>
+        <dict>
+          <key>NSIncludesSubdomains</key>
+          <true/>
+        </dict>
+      </dict>
       <key>NSAllowsArbitraryLoads</key>
       <true/>
     </dict>
     <key>FacebookAppID</key>
     <string>919107394818471</string>
     <key>FacebookDisplayName</key>
-    <string>Texting Games</string>
+    <string>Text It</string>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -64,6 +83,13 @@
           <string>fb919107394818471</string>
         </array>
       </dict>
+    </array>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+      <string>fbapi</string>
+      <string>fb-messenger-api</string>
+      <string>fbauth2</string>
+      <string>fbshareextension</string>
     </array>
   </dict>
 </plist>

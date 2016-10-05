@@ -10,6 +10,7 @@
     </feature>
     <feature name="FacebookConnectPlugin">
         <param name="android-package" value="org.apache.cordova.facebook.ConnectPlugin" />
+        <param name="onload" value="true" />
     </feature>
     <access origin="https://m.facebook.com" />
     <access origin="https://graph.facebook.com" />
@@ -32,6 +33,7 @@
     <allow-intent href="geo:*" />
     <allow-intent href="market:*" />
     <preference name="loglevel" value="DEBUG" />
+    <preference name="android-minSdkVersion" value="15" />
     <preference name="EnableWebGL" value="true" />
     <preference name="StatusBarBackgroundColor" value="#f48f42" />
 </widget>

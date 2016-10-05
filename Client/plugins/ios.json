@@ -7,15 +7,15 @@
         "files": {}
     },
     "installed_plugins": {
+        "cordova-plugin-statusbar": {
+            "PACKAGE_NAME": "com.coman3.TextIt"
+        },
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "com.coman3.TextIt"
         },
-        "phonegap-facebook-plugin": {
+        "cordova-plugin-facebook4": {
             "APP_ID": "919107394818471",
-            "APP_NAME": "Texting Games",
-            "PACKAGE_NAME": "com.coman3.TextIt"
-        },
-        "cordova-plugin-statusbar": {
+            "APP_NAME": "Text It",
             "PACKAGE_NAME": "com.coman3.TextIt"
         }
     },

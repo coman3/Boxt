@@ -57,8 +57,9 @@ app.controller("Loader", function ($scope) {
     function appLogin(authResponse) {
         updateMessage("Logging into game server...")
         $.ajax({
-            url: "http://192.168.0.17:10823/api/Account/RegisterExternalToken",
+            url: "http://192.168.43.105:10823/api/Account/RegisterExternalToken",
             method: "POST",
+            timeout: 1000,
             data: {
                 Token: authResponse.accessToken,
                 Provider: "Facebook"
@@ -71,6 +72,8 @@ app.controller("Loader", function ($scope) {
             },
             error: function (error) {
                 alert("An error occurred while trying to login, please restart and try again.")
+                facebookConnectPlugin.logout();
+                window.location = "login.html";
             }
         })
     }
@@ -85,10 +88,11 @@ app.controller("Login", function ($scope, $mdDialog) {
             targetEvent: ev,
         });
 
-        facebookConnectPlugin.login(["email"], function (success) {
+        facebookConnectPlugin.login(["email", "user_friends"], function (success) {
             window.location = "index.html";
         }, function (error) {
-
+            alert("Authentication Failed!");
+            window.location = "login.html";
         });
 
     }
