@@ -1,27 +1,13 @@
-var backButtonAction = function (e) {
-
-}
-document.addEventListener("backbutton", function (e) {
-    e.preventDefault();
-    backButtonAction();
-}, false);
-
-
-Storage.prototype.setObject = function (key, value) { this.setItem(key, JSON.stringify(value)); }
-Storage.prototype.getObject = function (key) { var value = this.getItem(key); return value && JSON.parse(value); }
-
-var app = angular.module('app', ['ngMaterial'])
-.config(function($mdThemingProvider) {
-  $mdThemingProvider.theme('default')
-    .primaryPalette('green')
-    .accentPalette('orange');
-});;
-app.controller("Loader", function ($scope) {
+app.controller("Loader", function ($scope, $location, $window) {
     $scope.loaderMessage = "Loading...";
 
-    setTimeout(load, 1000);
+    setTimeout(load, 500);
     function load() {
-        enterFullscreen();
+        if (typeof StatusBar == null) {
+            checkFacebookAuth();
+        } else {
+            enterFullscreen();
+        }
     }
 
     function updateMessage(message) {
@@ -52,14 +38,14 @@ app.controller("Loader", function ($scope) {
         });
     }
     function loginStart() {
-        window.location.href = "login.html";
+        $location.path("/login");
+        $scope.$apply()
     }
     function appLogin(authResponse) {
         updateMessage("Logging into game server...")
         $.ajax({
-            url: "http://192.168.43.105:10823/api/Account/RegisterExternalToken",
+            url: "http://textit.coman3.xyz/api/Account/RegisterExternalToken",
             method: "POST",
-            timeout: 1000,
             data: {
                 Token: authResponse.accessToken,
                 Provider: "Facebook"
@@ -68,44 +54,65 @@ app.controller("Loader", function ($scope) {
                 localStorage.setObject("facebookAuth", null)
                 localStorage.setObject("appAuth", success)
                 updateMessage("Logged In!")
-                window.location.href = "app.html";
+                $location.path("/lobby");
+                $scope.$apply()
+
             },
             error: function (error) {
-                alert("An error occurred while trying to login, please restart and try again.")
+                alert("An error occurred while trying to login, trying again.")
                 facebookConnectPlugin.logout();
-                window.location = "login.html";
+                $window.location.reload();
+                $scope.$apply()
             }
         })
     }
 
 });
-
-app.controller("Login", function ($scope, $mdDialog) {
+app.controller("Login", function ($scope, $mdDialog, $location) {
     $scope.facebookLogin = function (ev) {
-        var dialog = $mdDialog.show({
+        $mdDialog.show({
             contentElement: '#AuthPopup',
             parent: angular.element(document.body),
             targetEvent: ev,
         });
 
         facebookConnectPlugin.login(["email", "user_friends"], function (success) {
-            window.location = "index.html";
+            $location.path("/");
+            $scope.$apply()
         }, function (error) {
             alert("Authentication Failed!");
-            window.location = "login.html";
+            $mdDialog.hide();
         });
 
     }
 });
-app.controller("SideNav", function ($scope) {
-    $scope.signOut = function(){
+app.controller("SideNav", function ($scope, $location) {
+    $scope.signOut = function () {
         facebookConnectPlugin.logout();
         localStorage.setObject("auth", null)
-        window.location.href = "index.html"
+        $location.path("/");
+        $scope.$apply()
+    }
+    $scope.share = function () {
+        var options = {
+            message: 'share this', // not supported on some apps (Facebook, Instagram)
+            url: 'http://www.textit.coman3.xyz/',
+            chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+        }
+
+        var onSuccess = function (result) {
+            console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+            console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+        }
+
+        var onError = function (msg) {
+            console.log("Sharing failed with message: " + msg);
+        }
+
+        window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
     }
 });
-
-app.controller("MainApp", function ($scope, $timeout, $mdSidenav) {
+app.controller("Lobby", function ($scope, $timeout, $mdSidenav) {
     backButtonAction = function () {
         $mdSidenav('left').toggle();
     };

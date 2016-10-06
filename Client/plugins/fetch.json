@@ -26,5 +26,21 @@
             "APP_ID": "919107394818471",
             "APP_NAME": "Text It"
         }
+    },
+    "cordova-plugin-x-socialsharing": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-x-socialsharing"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-universal-links-plugin": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-universal-links-plugin"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }

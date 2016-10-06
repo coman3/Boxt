@@ -17,6 +17,12 @@
             "APP_ID": "919107394818471",
             "APP_NAME": "Text It",
             "PACKAGE_NAME": "com.coman3.TextIt"
+        },
+        "cordova-plugin-x-socialsharing": {
+            "PACKAGE_NAME": "com.coman3.TextIt"
+        },
+        "cordova-universal-links-plugin": {
+            "PACKAGE_NAME": "com.coman3.TextIt"
         }
     },
     "dependent_plugins": {}
