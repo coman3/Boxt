@@ -21,11 +21,12 @@
     <access origin="https://api.facebook.com" />
     <access origin="https://*.fbcdn.net" />
     <access origin="https://*.akamaihd.net" />
-    <name>Text It</name>
+    <name>Boxt</name>
     <description>
+        Play multiplayer clasics such as Tic Tac Toe with all of your friends!
     </description>
     <author email="me@coman3.me" href="http://coman3.me">
-        Apache Cordova Team
+        Lachlan van der Velden
     </author>
     <content src="index.html" />
     <access origin="*" />
@@ -36,9 +37,14 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     <universal-links>
-        <host name="textit.coman3.xyz" />
+        <host name="boxt.coman3.xyz" />
     </universal-links>
     <allow-intent href="market:*" />
+    <icon density="mdpi" src="res/android/mdpi.png" />
+    <icon density="hdpi" src="res/android/hdpi.png" />
+    <icon density="xhdpi" src="res/android/xhdpi.png" />
+    <icon density="xxhdpi" src="res/android/xxhdpi.png" />
+    <icon density="xxxhdpi" src="res/android/xxxhdpi.png" />
     <preference name="loglevel" value="DEBUG" />
     <preference name="android-minSdkVersion" value="15" />
     <preference name="EnableWebGL" value="true" />

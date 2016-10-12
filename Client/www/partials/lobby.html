@@ -1,111 +1,35 @@
-<div ng-controller="Lobby" layout="column" flex layout-fill ng-cloak>
-        <md-toolbar>
-            <div class="md-toolbar-tools">
-                <md-button class="md-icon-button" aria-label="Settings" ng-click="toggleLeft()">
-                    <md-icon>menu</md-icon>
-                </md-button>
-                <h2>
-                    Game Lobby
-                </h2>
-            </div>
-        </md-toolbar>
-        <md-sidenav class="md-sidenav-left" md-component-id="left" md-whiteframe="4">
-            <md-toolbar class="md-theme-indigo">
-                <div class="md-toolbar-tools">
-                    <md-button ng-click="toggleLeft()" class="md-icon-button" aria-label="close">
-                        <md-icon>close</md-icon>
-                    </md-button>
-                </div>
-            </md-toolbar>
-            <md-content>
-                <md-list ng-controller="SideNav" ng-cloak>
-                    <section>
-                        <md-subheader>Browse Games</md-subheader>
-                        <md-list-item ng-click="share()">
-                            <md-icon><i class="fa fa-trophy" aria-hidden="true"></i></md-icon>
-                            <p>Featured</p>
-                        </md-list-item>
-                        <md-list-item ng-click="TicTacToe()">
-                            <md-icon><i class="fa fa-line-chart" aria-hidden="true"></i></md-icon>
-                            <p>Popular</p>
-                        </md-list-item>
-                        <md-list-item ng-click="null">
-                            <md-icon>star</md-icon>
-                            <p>Favorited</p>
-                        </md-list-item>
-                    </section>
-                    <md-divider></md-divider>
-                    <section>
-                        <md-subheader>Social</md-subheader>
-                        <md-list-item ng-click="null">
-                            <md-icon><i class="fa fa-area-chart" aria-hidden="true"></i></md-icon>
-                            <p>Highscores</p>
-                        </md-list-item>
-                        <md-list-item ng-click="null">
-                            <md-icon><i class="fa fa-user" aria-hidden="true"></i></md-icon>
-                            <p>Friends</p>
-                        </md-list-item>
-                        <md-list-item ng-click="null">
-                            <md-icon><i class="fa fa-users" aria-hidden="true"></i></md-icon>
-                            <p>Groups</p>
-                        </md-list-item>
-                        <md-list-item ng-click="null">
-                            <md-icon><i class="fa fa-user-md" aria-hidden="true"></i></md-icon>
-                            <p>Profile</p>
-                        </md-list-item>
-                    </section>
-                    <md-divider></md-divider>
-                    <section>
-                        <md-subheader>Settings</md-subheader>
-                        <md-list-item ng-click="null">
-                            <md-icon><i class="fa fa-users" aria-hidden="true"></i></md-icon>
-                            <p>Manage Groups</p>
-                        </md-list-item>
-                        <md-list-item ng-click="null">
-                            <md-icon>build</md-icon>
-                            <p>Manage Settings</p>
-                        </md-list-item>
-                        <md-list-item ng-click="signOut()">
-                            <md-icon><i class="fa fa-sign-out" aria-hidden="true"></i></md-icon>
-                            <p>Sign Out</p>
-                        </md-list-item>
-                    </section>
-                </md-list>
+<div layout="column" flex layout-fill ng-cloak>
+	<md-content flex>
+		<section>
+			<md-subheader class="md-primary">Games in progress</md-subheader>
+			<md-list flex>
+				<md-list-item class="md-3-line" ng-repeat="item in GamesInProgress">
+					<img ng-src="{{item.Owner.ProfilePicture}}" class="md-avatar" alt="{{item.Owner.Name}}" />
+					<div class="md-list-item-text" layout="column">
+						<h3>{{ item.Owner.Name }}</h3>
+						<h4>{{ item.DateCreated }}</h4>
+						<p>{{ item.GameType }}</p>
+					</div>
+					<md-button class="md-secondary md-icon-button" ng-class="GameInProgressClick(item)">
+						<md-icon>play</md-icon>
+					</md-button>
+				</md-list-item>
+				<md-divider></md-divider>
+			</md-list>
+		</section>
+		<section>
+			<md-subheader class="md-primary">Featured Games</md-subheader>
+			<md-grid-list md-cols="2" md-cols-sm="3" md-cols-md="4" md-cols-gt-md="6" md-row-height-gt-md="1:1" md-row-height="4:3" md-gutter="8px"
+				md-gutter-gt-sm="4px">
 
-            </md-content>
-
-        </md-sidenav>
-        <md-content flex>
-            <section>
-                <md-subheader class="md-primary">Games in progress</md-subheader>
-                <md-list flex>
-                    <md-list-item class="md-3-line" ng-repeat="item in todos">
-                        <img ng-src="{{item.face}}" class="md-avatar" alt="{{item.who}}" />
-                        <div class="md-list-item-text" layout="column">
-                            <h3>{{ item.who }}</h3>
-                            <h4>{{ item.what }}</h4>
-                            <p>{{ item.notes }}</p>
-                        </div>
-                        <md-button class="md-secondary md-icon-button">
-                            <md-icon>{{item.action}}</md-icon>
-                        </md-button>
-                    </md-list-item>
-                    <md-divider></md-divider>
-                </md-list>
-            </section>
-            <section>
-                <md-subheader class="md-primary">Featured Games</md-subheader>
-                <md-grid-list md-cols="2" md-cols-sm="3" md-cols-md="4" md-cols-gt-md="6" md-row-height-gt-md="1:1" md-row-height="4:3" md-gutter="8px"
-                    md-gutter-gt-sm="4px">
-
-                    <md-grid-tile ng-repeat="tile in tiles" md-rowspan="{{tile.span.row}}" md-colspan="{{tile.span.col}}" md-colspan-sm="1" md-colspan-xs="1"
-                        ng-style="tile.style">
-                        <md-icon md-svg-icon="{{tile.icon}}"></md-icon>
-                        <md-grid-tile-footer>
-                            <h3>{{tile.title}}</h3>
-                        </md-grid-tile-footer>
-                    </md-grid-tile>
-                </md-grid-list>
-            </section>
-        </md-content>
-    </div>
+				<md-grid-tile ng-repeat="tile in tiles" md-rowspan="{{tile.span.row}}" md-colspan="{{tile.span.col}}" md-colspan-sm="1" md-colspan-xs="1"
+					ng-style="tile.style">
+					<md-icon md-svg-icon="{{tile.icon}}"></md-icon>
+					<md-grid-tile-footer>
+						<h3>{{tile.title}}</h3>
+					</md-grid-tile-footer>
+				</md-grid-tile>
+			</md-grid-list>
+		</section>
+	</md-content>
+</div>

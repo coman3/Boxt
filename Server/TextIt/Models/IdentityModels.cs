@@ -16,11 +16,13 @@ namespace TextIt.Models
     // You can add profile data for the user by adding more properties to your ApplicationUser class, please visit http://go.microsoft.com/fwlink/?LinkID=317594 to learn more.
     public class ApplicationUser : IdentityUser
     {
+        public string FacebookId { get; set; }
         public string Name { get; set; }
         public Gender Gender { get; set; }
         public bool Verified { get; set; }
         public string CoverPicture { get; set; }
         public string ProfilePicture { get; set; }
+
         [JsonIgnore]
         public virtual List<Game> Games { get; set; }
 
@@ -43,6 +45,7 @@ namespace TextIt.Models
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<Game> Games { get; set; }
+        public virtual DbSet<GameInvite> GameInvites { get; set; }
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
         {
@@ -96,6 +99,19 @@ namespace TextIt.Models
         [MaxLength(int.MaxValue)]
         public string GameState { get; set; }
         
+    }
+    public class GameInvite
+    {
+        [Key]
+        public string Id { get; set; }
+
+        public Game Game { get; set; }
+
+        public ApplicationUser Inviter { get; set; }
+        public ApplicationUser Invitee { get; set; }
+
+        public DateTime CreateDate { get; set; }
+        public DateTime Expiry { get; set; }
     }
 
     public enum GameType

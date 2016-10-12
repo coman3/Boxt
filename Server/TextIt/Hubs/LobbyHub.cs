@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -90,19 +91,47 @@ namespace TextIt.Hubs
         public void Login(string token)
         {
             if(!IsNotLoggedIn()) return;
-
-            AuthenticationTicket ticket = Startup.OAuthOptions.AccessTokenFormat.Unprotect(token);
-            if (ticket?.Properties?.ExpiresUtc != null)
+            try
             {
-                ClaimsIdentity identity = ticket.Identity;
-                var userId = identity.GetUserId();
-                UserMatches[Context.ConnectionId] = userId;
+                AuthenticationTicket ticket = Startup.OAuthOptions.AccessTokenFormat.Unprotect(token);
+                if (ticket?.Properties?.ExpiresUtc != null && ticket.Identity.IsAuthenticated)
+                {
+                    ClaimsIdentity identity = ticket.Identity;
+                    var userId = identity.GetUserId();
+                    UserMatches[Context.ConnectionId] = userId;
+                    Clients.Caller.Update(new
+                    {
+                        Event = new
+                        {
+                            Connected = true,
+                        }
+                    });
+                    return;
+                }
+                Clients.Caller.Update(new
+                {
+                    Event = new
+                    {
+                        Connected = false,
+                        Error = "Login Failed. Please check the access token.",
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Clients.Caller.Update(new
+                {
+                    Event = new
+                    {
+                        Connected = false,
+                        Error = ex.Message,
+                    }
+                });
             }
         }
         public override Task OnConnected()
         {
             UserMatches[Context.ConnectionId] = null;
-            Clients.Caller.Update("Connected!");
             return base.OnConnected();
         }
 

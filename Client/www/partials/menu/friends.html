@@ -1,0 +1,21 @@
+<div layout="column" flex layout-fill ng-cloak>
+	<md-content flex>
+		<section>
+			<md-subheader class="md-primary">Friends</md-subheader>
+			<md-list flex>
+				<md-list-item class="md-3-line" ng-repeat="item in GamesInProgress">
+					<!--<img ng-src="{{item.face}}" class="md-avatar" alt="{{item.who}}" />-->
+					<div class="md-list-item-text" layout="column">
+						<h3>{{ item.Owner.Name }}</h3>
+						<h4>{{ item.DateCreated }}</h4>
+						<p>{{ item.GameType }}</p>
+					</div>
+					<md-button class="md-secondary md-icon-button" ng-class="GameInProgressClick(item)">
+						<md-icon>play</md-icon>
+					</md-button>
+				</md-list-item>
+				<md-divider></md-divider>
+			</md-list>
+		</section>
+	</md-content>
+</div>

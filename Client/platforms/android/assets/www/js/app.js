@@ -1,254 +1,145 @@
-app.controller("Loader", function ($scope, $location, $window) {
-    $scope.loaderMessage = "Loading...";
-    //common
-    function updateMessage(message) {
-        console.log(message);
-    }
-    $scope.$on('$viewContentLoaded', function () {
-        document.addEventListener("deviceready", function () {
-            if (localStorage.getObject("appAuth") != null) {
-                auth = localStorage.getObject("appAuth");
-                updateMessage("Logging in using saved credentials...");
-                loginToSignalR();
-            } else {
-                loginToFacebook();
-            }
+app.controller("Loader", ["$rootScope", "$scope", "$location", "$mdSidenav", "BoxtService", "$mdDialog", "$timeout",
+    function ($rootScope, $scope, $location, $mdSidenav, $BoxtService, $mdDialog, $timeout) {
+        $scope.loaderMessage = "Loading...";
+        //common
+        if ($BoxtService.loggedIn) {
+            checkLogin();
+        } else {
+            loginWithFacebook();
+        }
+        function loginWithFacebook() {
+            var confirm = $mdDialog.confirm()
+                .title("Login With Facebook?")
+                .textContent("Hello, to use Boxt you must login with facebook.")
+                .ariaLabel("Login")
+                .ok("Login With Facebook")
+                .cancel("No Thanks");
+            $mdDialog.show(confirm).then(function (confirm) {
+                $scope.loaderMessage = "Logging in with facebook...";
+                $BoxtService.loginToFacebook(function (success) {
+                    $scope.loaderMessage = "Logging into Game Server...";
+                    $BoxtService.loginToGameServer(function (success) {
+                        getUserData();
+                    }, function (error) {
+                        $scope.loaderMessage = "Login To Game Server Failed. Trying Again...";
+                        tryAgain();
+                    });
+                }, function (error) {
+                    $scope.loaderMessage = "Login Failed, Trying Again...";
+                    tryAgain();
+                });
+            }, function (cancel) {
+                $scope.loaderMessage = "Please Login To Use Boxt.";
+                tryAgain();
+            });
+        }
+        function checkLogin() {
+            $BoxtService.checkLogin(function (success) {
+                getUserData();
+            }, function (error) {
+                $BoxtService.logout();
+                loginWithFacebook();
+            })
+        }
 
-        }, false);
-    });
+        function getUserData() {
+            $scope.loaderMessage = "Loading Data...";
+            $BoxtService.loadUserData(function (success) {
+                $scope.loaderMessage = "Connecting To Lobby..."
+                $BoxtService.connectToLobby(function (success) {
+                    $scope.loaderMessage = "Starting...";
+                    $scope.$apply();
+                    $BoxtService.showNavigation();
+                    $BoxtService.navigate("lobby");
+                    $timeout(function () {
+                        $scope.$apply();
+                    }, 500);
+                }, function (error) {
+                    $scope.loaderMessage = "Failed Connecting To Hub. Trying Again...";
+                    tryAgain();
+                });
+            }, function (error) {
+                $scope.loaderMessage = "Failed Getting User Data. Trying Again...";
+                tryAgain();
+            });
+        }
 
-    //loading
-    function loginToFacebook() {
-        updateMessage("Authenticating...")
-        facebookConnectPlugin.getLoginStatus(function (success) {
-            if (success.status != "connected") {
-                $location.path("/login");
-                $scope.$apply();
-            } else {
-                updateMessage("Social Authentication Successful!")
-                loginToGameServer(success.authResponse);
-            }
+        function tryAgain() {
+            $timeout(function () {
+                window.location.reload();
+            }, 5000);
+        }
+    }]);
+
+app.controller("Lobby", ["$rootScope", "$scope", "$location", "$mdSidenav", "BoxtService", "$mdDialog", "$timeout",
+    function ($rootScope, $scope, $location, $mdSidenav, $BoxtService, $mdDialog, $timeout) {
+
+        $scope.toggleLeft = backButtonAction;
+        $scope.tiles = [
+            {
+                icon: "img/tictactoe.svg",
+                title: "tick tac toe",
+                style: {
+                    'background-color': "#FF3300",
+                },
+                span: {
+                    row: 1,
+                    col: 2
+                }
+            }, {
+                icon: "img/tictactoe.svg",
+                title: "4 in a row",
+                style: {
+                    'background-color': "#FF3300",
+                },
+                span: {
+                    row: 1,
+                    col: 1
+                }
+            }, {
+                icon: "img/tictactoe.svg",
+                title: "guess the word",
+                style: {
+                    'background-color': "#FF3300",
+                },
+                span: {
+                    row: 2,
+                    col: 1
+                }
+            }, {
+                icon: "img/tictactoe.svg",
+                title: "guess the drawing",
+                style: {
+                    'background-color': "#FF3300",
+                },
+                span: {
+                    row: 1,
+                    col: 1
+                }
+            }, {
+                icon: "img/tictactoe.svg",
+                title: "popular game 1",
+                style: {
+                    'background-color': "#FF3300",
+                },
+                span: {
+                    row: 1,
+                    col: 3
+                }
+            },
+        ];
+
+        $scope.GamesInProgress = [];
+        $BoxtService.listGames(null, function (success) {
+            success.forEach(function (item) {
+                $scope.GamesInProgress.push(item);
+            });
         }, function (error) {
-            updateMessage("Authentication Error!")
-            $location.path("/login");
-            $scope.$apply()
-        });
-    }
-    function loginToGameServer(authResponse) {
-        updateMessage("Logging into game server...")
-        $.ajax({
-            url: hostAddress + "api/Account/RegisterExternalToken",
-            method: "POST",
-            data: {
-                Token: authResponse.accessToken,
-                Provider: "Facebook"
-            },
-            success: function (success) {
-                localStorage.setObject("appAuth", success)
-                auth = success;
-                updateMessage("Connecting To SignalR Server...")
-                loginToSignalR();
-
-            },
-            error: function (error) {
-                alert("An error occurred while trying to login. Please try again.")
-                facebookConnectPlugin.logout();
-                $window.location.reload();
-                $scope.$apply()
-            }
+            console.error(error);
         })
-    }
-    function loginToSignalR() {
-        lobbyHub = $.connection.lobbyHub;
-        lobbyHub.client.serverMessage = function (message) {
-            console.log(message);
-        };
-        $.connection.hub.start(function () {
-            lobbyHub.server.login(auth.access_token);
-            updateMessage("Loading User Data...")
-            getUserData();
-        });
-    }
-    function getUserData() {
-        $.ajax({
-            url: hostAddress + "api/Account/UserInfo",
-            method: "GET",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader("Authorization", "Bearer " + auth.access_token)
-            },
-            success: function (success) {
-                updateMessage("Starting Game!")
-                $location.path("/lobby");
-                $scope.$apply()
-            },
-            error: function (error) {
-                alert("An error occurred while trying to collect user data. Please try again.")
-                facebookConnectPlugin.logout();
-                $window.location.reload();
-                $scope.$apply()
-            }
-        });
-    }
+    }]);
 
-});
-app.controller("Login", function ($scope, $mdDialog, $location) {
-    $scope.facebookLogin = function (ev) {
-        $mdDialog.show({
-            contentElement: '#AuthPopup',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-        });
 
-        facebookConnectPlugin.login(["email", "user_friends"], function (success) {
-            $location.path("/");
-            $scope.$apply()
-        }, function (error) {
-            alert("Authentication Failed!");
-            $mdDialog.hide();
-        });
-
-    }
-});
-app.controller("SideNav", function ($scope, $location) {
-    $scope.signOut = function () {
-        facebookConnectPlugin.logout();
-        localStorage.setObject("appAuth", null)
-        auth = null;
-        $location.path("/");
-        $scope.$apply()
-    }
-    $scope.TicTacToe = function () {
-        $location.path("games/TicTacToe");
-    }
-    $scope.share = function () {
-        var options = {
-            message: 'share this', // not supported on some apps (Facebook, Instagram)
-            url: 'http://boxt.coman3.xyz/',
-            chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
-        }
-
-        var onSuccess = function (result) {
-            console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
-            console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
-        }
-
-        var onError = function (msg) {
-            console.log("Sharing failed with message: " + msg);
-        }
-
-        window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
-    }
-});
-app.controller("Lobby", function ($scope, $timeout, $mdSidenav) {
-    $scope.$on("$viewContentLoaded", function () {
-        if (StatusBar.isVisible) {
-            StatusBar.hide();
-        }
-
-    });
-
-    backButtonAction = function () {
-        $mdSidenav('left').toggle();
-    };
-
-    $scope.toggleLeft = backButtonAction;
-    $scope.tiles = [
-        {
-            icon: "img/tictactoe.svg",
-            title: "tick tac toe",
-            style: {
-                'background-color': "#FF3300",
-            },
-            span: {
-                row: 1,
-                col: 2
-            }
-        }, {
-            icon: "img/tictactoe.svg",
-            title: "4 in a row",
-            style: {
-                'background-color': "#FF3300",
-            },
-            span: {
-                row: 1,
-                col: 1
-            }
-        }, {
-            icon: "img/tictactoe.svg",
-            title: "guess the word",
-            style: {
-                'background-color': "#FF3300",
-            },
-            span: {
-                row: 2,
-                col: 1
-            }
-        }, {
-            icon: "img/tictactoe.svg",
-            title: "guess the drawing",
-            style: {
-                'background-color': "#FF3300",
-            },
-            span: {
-                row: 1,
-                col: 1
-            }
-        }, {
-            icon: "img/tictactoe.svg",
-            title: "popular game 1",
-            style: {
-                'background-color': "#FF3300",
-            },
-            span: {
-                row: 1,
-                col: 3
-            }
-        },
-    ];
-    var imagePath = "https://placeholdit.imgix.net/~text?txtsize=8&txt=64%C3%9764&w=64&h=64";
-    $scope.todos = [
-        {
-            face: imagePath,
-            what: 'Brunch this weekend?',
-            who: 'Min Li Chan',
-            when: '3:08PM',
-            notes: " I'll be in your neighborhood doing errands",
-            action: "play_arrow"
-        },
-        {
-            face: imagePath,
-            what: 'Brunch this weekend?',
-            who: 'Min Li Chan',
-            when: '3:08PM',
-            notes: " I'll be in your neighborhood doing errands",
-            action: "play_arrow"
-        },
-        {
-            face: imagePath,
-            what: 'Brunch this weekend?',
-            who: 'Min Li Chan',
-            when: '3:08PM',
-            notes: " I'll be in your neighborhood doing errands",
-            action: "play_arrow"
-        },
-        {
-            face: imagePath,
-            what: 'Brunch this weekend?',
-            who: 'Min Li Chan',
-            when: '3:08PM',
-            notes: " I'll be in your neighborhood doing errands",
-            action: "play_arrow"
-        },
-        {
-            face: imagePath,
-            what: 'Brunch this weekend?',
-            who: 'Min Li Chan',
-            when: '3:08PM',
-            notes: " I'll be in your neighborhood doing errands",
-            action: "play_arrow"
-        },
-    ];
-});
 
 app.controller("TicTacToe", function ($scope, $location) {
     backButtonAction = function () {
@@ -316,10 +207,24 @@ app.controller("TicTacToe", function ($scope, $location) {
 
 //new
 
-app.controller("LeftNavigation",
-    ["BoxtService", "mdSidenav",
-        function ($rootScope, $scope, $location, $BoxtService, $mdSideNav) {
+app.controller("NavigationController",
+    ["$rootScope", "$scope", "$location", "$mdSidenav", "BoxtService",
+        function ($rootScope, $scope, $location, $mdSidenav, $BoxtService) {
             $scope.MenuTitle = "Menu";
+            $scope.NavigationTitle = "Game Lobby";
+            $scope.showNavigation = false;
+            $rootScope.$on("NavigationBar", function (event, args) {
+                if (args.set != null) {
+                    $scope.showNavigation = (args.set == "show");
+                } else if (args.toggle == true) {
+                    $scope.showNavigation = !$scope.showNavigation;
+                }
+            });
+            backButtonAction = function () {
+                if ($scope.showNavigation == true) {
+                    $mdSidenav('left').toggle();
+                }
+            };
 
             $scope.MenuItems = [
                 {
@@ -327,45 +232,79 @@ app.controller("LeftNavigation",
                     Items: [
                         {
                             Title: "Featured",
-                            Click: function(){
+                            Click: function () {
                                 alert("Featured");
                             },
                             Icon: {
                                 Type: "FA",
-                                Icon: "trophy"  
+                                Icon: "trophy"
                             }
                         },
                         {
                             Title: "Popular",
-                            Click: function(){
+                            Click: function () {
                                 alert("Popular");
                             },
                             Icon: {
                                 Type: "FA",
-                                Icon: "line-chart"  
+                                Icon: "line-chart"
                             }
                         },
                         {
                             Title: "Favorites",
-                            Click: function(){
+                            Click: function () {
                                 alert("Favorites");
                             },
                             Icon: {
                                 Type: "MD",
-                                Icon: "star"  
+                                Icon: "star"
+                            }
+                        }
+                    ]
+                },
+                {
+                    GroupTitle: "Account",
+                    Items: [
+                        {
+                            Title: "Settings",
+                            Click: function () {
+                                alert("Settings");
+                            },
+                            Icon: {
+                                Type: "MD",
+                                Icon: "settings"
+                            }
+                        },
+                        {
+                            Title: "About",
+                            Click: function () {
+                                alert("About");
+                            },
+                            Icon: {
+                                Type: "MD",
+                                Icon: "info_outline"
+                            }
+                        },
+                        {
+                            Title: "Sign Out",
+                            Click: function () {
+                                $BoxtService.logout();
+                                $BoxtService.hideNavigation();
+                                $BoxtService.navigate("");
+                            },
+                            Icon: {
+                                Type: "FA",
+                                Icon: "sign-out"
                             }
                         }
                     ]
                 }
             ];
 
+            $scope.toggleNav = function () {
+                if ($BoxtService.navDisabled)
+                    return;
 
-            $scope.navigate = function (location) {
-                $location.path("/" + location);
-            }
-        }]);
-app.controller("TopNavigation",
-    ["BoxtService", "mdSidenav",
-        function ($rootScope, $scope, $location, $Boxt, $mdSideNav) {
-            $scope.NavigationTitle = "Game Lobby";
+                $mdSidenav('left').toggle();
+            };
         }]);

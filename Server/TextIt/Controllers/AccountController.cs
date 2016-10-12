@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -14,6 +15,7 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Linq;
+using TextIt.Helpers;
 using TextIt.Models;
 using TextIt.Providers;
 using TextIt.Results;
@@ -26,6 +28,7 @@ namespace TextIt.Controllers
     {
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
+        private ApplicationDbContext _dbContext = new ApplicationDbContext();
 
         public AccountController()
         {
@@ -52,6 +55,16 @@ namespace TextIt.Controllers
 
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("Check")]
+        public HttpResponseMessage CheckToken()
+        {
+            return User.Identity.IsAuthenticated
+                ? Request.CreateResponse(HttpStatusCode.Accepted, "Token Vaild!")
+                : Request.CreateErrorResponse(HttpStatusCode.Forbidden, "Token Invaild!");
+        }
+
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]
@@ -68,6 +81,14 @@ namespace TextIt.Controllers
                 Name = externalLogin.Name,
                 ProfilePicture = externalLogin.ProfilePicture
             };
+        }
+        [Route("Friends")]
+        public async Task<List<ApplicationUser>> GetUserFriends()
+        {
+            var userId = User.Identity.GetUserId();
+            var user = await UserManager.FindByIdAsync(userId);
+            var facebookFriends = await _dbContext.GetUserFriendsAsync(user);
+            return facebookFriends;
         }
 
         // POST api/Account/Logout
@@ -180,7 +201,7 @@ namespace TextIt.Controllers
                     Gender = externalLogin.Gender,
                     Verified = externalLogin.Verified,
                     Name = externalLogin.Name,
-
+                    FacebookId = externalLogin.ProviderKey
                 };
                 result = await UserManager.CreateAsync(user);
 

@@ -216,13 +216,14 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\GameController.cs" />
+    <Compile Include="Controllers\GamesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Games\GameState.cs" />
     <Compile Include="Games\TicTacToeGameState.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\FacebookHelper.cs" />
     <Compile Include="Hubs\LobbyHub.cs" />
     <Compile Include="Migrations\201610040625025_InitialCreate.cs" />
     <Compile Include="Migrations\201610040625025_InitialCreate.Designer.cs">
@@ -275,6 +276,14 @@
     <Compile Include="Migrations\201610090802110_AddGameState.cs" />
     <Compile Include="Migrations\201610090802110_AddGameState.Designer.cs">
       <DependentUpon>201610090802110_AddGameState.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610121121053_AddGameInvites.cs" />
+    <Compile Include="Migrations\201610121121053_AddGameInvites.Designer.cs">
+      <DependentUpon>201610121121053_AddGameInvites.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610121148248_AddFacebookUserId.cs" />
+    <Compile Include="Migrations\201610121148248_AddFacebookUserId.Designer.cs">
+      <DependentUpon>201610121148248_AddFacebookUserId.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
@@ -410,6 +419,12 @@
     <EmbeddedResource Include="Migrations\201610090802110_AddGameState.resx">
       <DependentUpon>201610090802110_AddGameState.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610121121053_AddGameInvites.resx">
+      <DependentUpon>201610121121053_AddGameInvites.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610121148248_AddFacebookUserId.resx">
+      <DependentUpon>201610121148248_AddFacebookUserId.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -429,7 +444,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>10823</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:80</IISUrl>
+          <IISUrl>http://localhost:1234</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
