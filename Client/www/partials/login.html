@@ -1,63 +1,15 @@
-<div flex="100" layout="column" id="popupContainer">
-    <md-card>
-        <md-card-title>
-            <md-card-title-text>
-                <span class="md-headline">Login With Facebook</span>
-            </md-card-title-text>
-            <md-card-title-media>
-                <div class="md-media-sm card-media"><img style="padding: 15px;" src="img/facebook.png" /></div>
-            </md-card-title-media>
-        </md-card-title>
-        <md-card-actions layout="row" layout-align="end center">
-            <md-button class="md-raised" md-colors="{background: 'blue-900'}" ng-click="facebookLogin($event)">Login With Facebook</md-button>
-        </md-card-actions>
-    </md-card>
-    <md-card>
-        <md-card-title>
-            <md-card-title-text>
-                <span class="md-headline">Login With Google</span>
-            </md-card-title-text>
-            <md-card-title-media>
-                <div class="md-media-sm card-media"><img style="padding: 10px;" src="img/google.png" /></div>
-            </md-card-title-media>
-        </md-card-title>
-        <md-card-actions layout="row" layout-align="end center">
-            <md-button ng-disabled="true" class="md-raised">
-                <strike>Login With Google</strike>
-            </md-button>
-        </md-card-actions>
-    </md-card>
-    <md-card>
-        <md-card-title>
-            <md-card-title-text>
-                <span class="md-headline">Login With Twiiter</span>
-            </md-card-title-text>
-            <md-card-title-media>
-                <div class="md-media-sm card-media"><img style="padding: 15px;" src="img/twitter.png" /></div>
-            </md-card-title-media>
-        </md-card-title>
-        <md-card-actions layout="row" layout-align="end center">
-            <md-button ng-disabled="true" class="md-raised">
-                <strike>Login With Twitter</strike>
-            </md-button>
-        </md-card-actions>
-    </md-card>
-    <md-card>
-        <md-card-title>
-            <md-card-title-text>
-                <span class="md-headline">Manual Login</span>
-                <span class="md-subhead">Only use this if you do not wish to play live games with other people, or if you do not have a supported social media account.</span>
-            </md-card-title-text>
-            <md-card-title-media>
-                <div class="md-media-sm card-media"><img style="padding: 15px;" src="img/email.png" /></div>
-            </md-card-title-media>
-        </md-card-title>
-        <md-card-actions layout="row" layout-align="end center">
-            <md-button ng-disabled="true" class="md-raised">
-                <strike>Login</strike>
-            </md-button>
-        </md-card-actions>
-    </md-card>
+<div style="position: absolute;
+  margin-left: -100px;
+  margin-top: -125px; 
+  width:200px; height: 250px;
+  top: 50%; bottom: 50%;
+  left: 50%; right: 50%; text-align: center;">
+    <div style="padding: 10px;">
+        Login With Facebook
+    </div>
+            <md-button class="md-fab" style="width:100%; height: 80%; font-size: 100px; padding:0; margin:0;" md-colors="{background: 'blue-900'}" ng-click="facebookLogin($event)">
+            <i class="fa fa-facebook-square"></i>
+        </md-button>
 </div>
 <div style="visibility: hidden">
     <div class="md-dialog-container" id="AuthPopup">

@@ -1,24 +1,160 @@
-﻿<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS, and JavaScript.</p>
-    <p><a href="http://example.com" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+﻿<style>
+    .game {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 300px;
+        height: 300px;
+        margin-left: calc(300px / 2 * -1);
+        margin-top: calc(300px / 2* -1);
+    }
+
+        .game .board {
+            width: 100%;
+            height: 100%;
+        }
+
+    .board .square {
+        width: calc(100% / 3);
+        height: calc(100% / 3);
+        position: absolute;
+        left: calc(100% / 3);
+        top: calc(100% / 3);
+    }
+
+    .board .right {
+        border-left: 2px black solid;
+        left: calc(100% / 3 * 2);
+    }
+
+    .board .left {
+        border-right: 2px black solid;
+        left: 0;
+    }
+
+    .board .top {
+        border-bottom: 2px black solid;
+        top: 0;
+    }
+
+    .board .bottom {
+        border-top: 2px black solid;
+        top: calc(100% / 3 * 2);
+    }
+
+    .square div {
+        width: 100%;
+        height: 100%;
+    }
+
+    .square .x {
+        background-color: black;
+    }
+
+    .square .o {
+        background-color: red;
+    }
+</style>
+<div class="game" ng-app="TextIt" ng-controller="TicTacToe" ng-init="load()">
+    <div class="board">
+        <div ng-repeat="item in board.Items" ng-class="'square ' + item.Position" ng-click="sendUpdate($index, 1)">
+            <div ng-class="item.Value">{{item.Value}}</div>
+        </div>
+    </div>
+    <div class="restart" style="display: none;" ng-controller="test1"></div>
 </div>
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>ASP.NET Web API is a framework that makes it easy to build HTTP services that reach
-        a broad range of clients, including browsers and mobile devices. ASP.NET Web API
-        is an ideal platform for building RESTful applications on the .NET Framework.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301870">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301871">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301872">Learn more &raquo;</a></p>
-    </div>
-</div>
+
+@section scripts
+{
+    <script src="~/Scripts/jquery.signalR-2.2.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.js"></script>
+    <script src="~/SignalR/Hubs"></script>
+    <script>
+        var lobbyProxy = $.connection.lobbyHub;
+        lobbyProxy.client.serverMessage = function(message) {
+            console.log(message);
+
+        };
+        var app = angular.module('TextIt', []);
+        app.service("Boxt", function () {
+            var scope = this;
+            this.baseUrl = "http://192.168.0.17/";
+            this.accessToken = null;
+            this.userInfo = null;
+            this.hub = null;
+            this.backAction = null;
+
+            this.changeUrl = function (url) {
+                scope.baseUrl = url;
+            }
+
+        });
+        var hostAddress = "http://localhost/";
+        var gameId = "538c2e73-387a-4162-a7eb-c335ac4b13f5";
+        var auth = {
+            //access_token: "IQdUQFndJ16HLAhl8gbIpRDisAz4x3l49zI39R1bHHmVUUUd_oPnO3bMUxruD8iguJpEAFuYaziqK9TKV5ZTWjbTSJAz8J2Jfty7BF2OUiKFinHNvcLkTwZVyseDeuXtWAb2cVdCMdgrkDGv0O-b0r0Q0kgu3SvaPx5y-19mcknUyCTusT6fxPGRMe7LLyj8_JnLQodO56GsSh0N89sldavzH8YbWN0tvaZ9uJM8UFN4F5rniFlM4XLzWUeYQm8UM-P2DofjZaPw63MOY6bnL7z2-u-nYl4-WvdB_vdyT7aU6lW15XyvSOB62GZy7TMj8ItA9jR5C5Bq1Q55cuVvhI_KMpuvYXNQD-QG3hpmMd4"
+            access_token: "Vy5VDjALGw_-vhS6Wh8F5yZlA-Br0MEzYkvQ3800HF0WHJnr6oRpwpfwOyrT0VpEdno9xso5AVoFXkOoSl1pGymjc2eUzNCseNqEVUBwRS8fx89k6C_cIZEqWKtQq0mrgEz5fltHYcEJbQEQNmkCuf7_WXkFrUK0IF5-ENyBDlEqHGFYK6dKE2o-atDm60yi6wvLaLu-3GSzlbo5rzu34hHg4pGQ8G_SuV1QWP_qb2hTnOxNhNqM63NnSfHARONvSGc_cdX-eRpIM7OYB4-d8sLer1bD0RuVmwNvHBrMYL1hfBvp2Pop_Y_qXPxzVGH9JpRa8MfiY513ggAH5nuJ7e2D7Wp4Gtd2sz1Dh7dMaM0"
+        };
+
+        app.controller("TicTacToe", ["$scope", "Boxt",
+            function($scope, $Boxt) {
+                $scope.board = {
+                    Items: []
+                };
+                console.log($Boxt.baseUrl);
+                $Boxt.changeUrl("Test Url");
+
+                console.log($Boxt.baseUrl);
+                $scope.sendUpdate = function(index, value) {
+                    lobbyProxy.server.updateGame(gameId,
+                    {
+                        turn: {
+                            index: index,
+                            value: value
+                        }
+                    });
+                };
+
+                $scope.load = function() {
+                    lobbyProxy.client.update = function(state) {
+                        console.log(state);
+                        if (state.turn != null) {
+                            $scope.board.Items[state.turn.index].Value = state.turn.value;
+                        }
+                        if (state.GameEnd != null) {
+                            alert(state.GameEnd.Reason);
+                        }
+                        $scope.$apply();
+                    };
+                    $.connection.hub.start(function() {
+                        $.ajax({
+                            url: hostAddress + "api/Game/State?gameId=" + gameId,
+                            method: "GET",
+                            beforeSend: function(xhr) {
+                                xhr.setRequestHeader("Authorization", "Bearer " + auth.access_token);
+                            },
+                            success: function(success) {
+                                console.log(success);
+
+                                success.Board.Items.forEach(function(item) { $scope.board.Items.push(item); });
+                                //$scope.board.Items = success.Board.Items;
+                                $scope.$apply();
+                                lobbyProxy.server.login(auth.access_token);
+                                lobbyProxy.server.joinGame(success.Game.Id);
+                            },
+                            error: function(error) {
+
+                            }
+                        });
+                    });
+                }
+            }]);
+
+        app.controller("test1",
+        [
+            "$scope", "Boxt", function($scope, $Boxt) {
+                console.log("Output: " + $Boxt.baseUrl);
+            }
+        ]);
+    </script>
+}

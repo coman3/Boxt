@@ -25,7 +25,7 @@
         <allow-intent href="itms-apps:*" />
     </platform>
     <plugin name="cordova-plugin-facebook4" spec="https://github.com/jeduan/cordova-plugin-facebook4">
-        <variable name="APP_ID" value="919107394818471" />
+        <variable name="APP_ID" value="195236404242557" />
         <variable name="APP_NAME" value="Boxt" />
     </plugin>
     <universal-links>

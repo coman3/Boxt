@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Facebook;
 using Microsoft.Owin.Security.Google;
+using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.OAuth;
 using Owin;
 using TextIt.Providers;
@@ -36,6 +38,7 @@ namespace TextIt
 
             // Configure the application for OAuth based flow
             PublicClientId = "self";
+            
             OAuthOptions = new OAuthAuthorizationServerOptions
             {
                 TokenEndpointPath = new PathString("/Token"),
@@ -48,7 +51,6 @@ namespace TextIt
 
             // Enable the application to use bearer tokens to authenticate users
             app.UseOAuthBearerTokens(OAuthOptions);
-
             // Uncomment the following lines to enable logging in with third party login providers
             //app.UseMicrosoftAccountAuthentication(
             //    clientId: "",
@@ -60,8 +62,8 @@ namespace TextIt
 
             app.UseFacebookAuthentication(FacebookAuthOptions = new FacebookAuthenticationOptions()
             {
-                AppId = "919107394818471",
-                AppSecret = "b12c5d6a9e186d63e6ca5cc4dc3d45bd"
+                AppId = "195236404242557",
+                AppSecret = "84f643a293c2551dc9d2fa128ffa5a99"
             });
 
         //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()

@@ -275,7 +275,6 @@ public class ConnectPlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        webView.loadUrl("javascript:console.log('Execute: " + action + "');'");
         if (action.equals("login")) {
             executeLogin(args, callbackContext);
             return true;

@@ -22,16 +22,15 @@ namespace TextIt.Models
 
         public IEnumerable<UserLoginInfoViewModel> Logins { get; set; }
 
-        public IEnumerable<ExternalLoginViewModel> ExternalLoginProviders { get; set; }
     }
 
     public class UserInfoViewModel
     {
         public string Email { get; set; }
-
-        public bool HasRegistered { get; set; }
-
-        public string LoginProvider { get; set; }
+        public string Name { get; set; }
+        public string ProfilePicture { get; set; }
+        public string CoverPicture { get; set; }
+        public string Gender { get; set; }
     }
 
     public class UserLoginInfoViewModel

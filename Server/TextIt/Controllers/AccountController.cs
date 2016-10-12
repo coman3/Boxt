@@ -55,15 +55,18 @@ namespace TextIt.Controllers
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]
-        public UserInfoViewModel GetUserInfo()
+        public async Task<UserInfoViewModel> GetUserInfo()
         {
-            ExternalLoginData externalLogin = ExternalLoginData.FromIdentity(User.Identity as ClaimsIdentity);
+            ExternalLoginData externalLogin = await ExternalLoginData.FromIdentity(User.Identity as ClaimsIdentity, UserManager);
 
+            if (externalLogin == null) return null;
             return new UserInfoViewModel
             {
-                Email = User.Identity.GetUserName(),
-                HasRegistered = externalLogin == null,
-                LoginProvider = externalLogin != null ? externalLogin.LoginProvider : null
+                CoverPicture = externalLogin.CoverPicture,
+                Email = externalLogin.Email,
+                Gender = externalLogin.Gender.ToString(),
+                Name = externalLogin.Name,
+                ProfilePicture = externalLogin.ProfilePicture
             };
         }
 
@@ -73,46 +76,6 @@ namespace TextIt.Controllers
         {
             Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType);
             return Ok();
-        }
-
-        // GET api/Account/ManageInfo?returnUrl=%2F&generateState=true
-        [Route("ManageInfo")]
-        public async Task<ManageInfoViewModel> GetManageInfo(string returnUrl, bool generateState = false)
-        {
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            List<UserLoginInfoViewModel> logins = new List<UserLoginInfoViewModel>();
-
-            foreach (IdentityUserLogin linkedAccount in user.Logins)
-            {
-                logins.Add(new UserLoginInfoViewModel
-                {
-                    LoginProvider = linkedAccount.LoginProvider,
-                    ProviderKey = linkedAccount.ProviderKey
-                });
-            }
-
-            if (user.PasswordHash != null)
-            {
-                logins.Add(new UserLoginInfoViewModel
-                {
-                    LoginProvider = LocalLoginProvider,
-                    ProviderKey = user.UserName,
-                });
-            }
-
-            return new ManageInfoViewModel
-            {
-                LocalLoginProvider = LocalLoginProvider,
-                Email = user.UserName,
-                Logins = logins,
-                ExternalLoginProviders = GetExternalLogins(returnUrl, generateState)
-            };
         }
 
         // POST api/Account/ChangePassword
@@ -154,171 +117,6 @@ namespace TextIt.Controllers
             return Ok();
         }
 
-        // POST api/Account/AddExternalLogin
-        [Route("AddExternalLogin")]
-        public async Task<IHttpActionResult> AddExternalLogin(AddExternalLoginBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            Authentication.SignOut(DefaultAuthenticationTypes.ExternalCookie);
-
-            AuthenticationTicket ticket = AccessTokenFormat.Unprotect(model.ExternalAccessToken);
-
-            if (ticket == null || ticket.Identity == null || (ticket.Properties != null
-                && ticket.Properties.ExpiresUtc.HasValue
-                && ticket.Properties.ExpiresUtc.Value < DateTimeOffset.UtcNow))
-            {
-                return BadRequest("External login failure.");
-            }
-
-            ExternalLoginData externalData = ExternalLoginData.FromIdentity(ticket.Identity);
-
-            if (externalData == null)
-            {
-                return BadRequest("The external login is already associated with an account.");
-            }
-
-            IdentityResult result = await UserManager.AddLoginAsync(User.Identity.GetUserId(),
-                new UserLoginInfo(externalData.LoginProvider, externalData.ProviderKey));
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
-
-        // POST api/Account/RemoveLogin
-        [Route("RemoveLogin")]
-        public async Task<IHttpActionResult> RemoveLogin(RemoveLoginBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            IdentityResult result;
-
-            if (model.LoginProvider == LocalLoginProvider)
-            {
-                result = await UserManager.RemovePasswordAsync(User.Identity.GetUserId());
-            }
-            else
-            {
-                result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId(),
-                    new UserLoginInfo(model.LoginProvider, model.ProviderKey));
-            }
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
-
-        // GET api/Account/ExternalLogin
-        [OverrideAuthentication]
-        [HostAuthentication(DefaultAuthenticationTypes.ExternalCookie)]
-        [AllowAnonymous]
-        [Route("ExternalLogin", Name = "ExternalLogin")]
-        public async Task<IHttpActionResult> GetExternalLogin(string provider, string error = null)
-        {
-            if (error != null)
-            {
-                return Redirect(Url.Content("~/") + "#error=" + Uri.EscapeDataString(error));
-            }
-
-            if (!User.Identity.IsAuthenticated)
-            {
-                return new ChallengeResult(provider, this);
-            }
-
-            ExternalLoginData externalLogin = ExternalLoginData.FromIdentity(User.Identity as ClaimsIdentity);
-
-            if (externalLogin == null)
-            {
-                return InternalServerError();
-            }
-
-            if (externalLogin.LoginProvider != provider)
-            {
-                Authentication.SignOut(DefaultAuthenticationTypes.ExternalCookie);
-                return new ChallengeResult(provider, this);
-            }
-
-            ApplicationUser user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
-                externalLogin.ProviderKey));
-
-            bool hasRegistered = user != null;
-
-            if (hasRegistered)
-            {
-                Authentication.SignOut(DefaultAuthenticationTypes.ExternalCookie);
-                
-                 ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager,
-                    OAuthDefaults.AuthenticationType);
-                ClaimsIdentity cookieIdentity = await user.GenerateUserIdentityAsync(UserManager,
-                    CookieAuthenticationDefaults.AuthenticationType);
-
-                AuthenticationProperties properties = ApplicationOAuthProvider.CreateProperties(user.UserName);
-                Authentication.SignIn(properties, oAuthIdentity, cookieIdentity);
-            }
-            else
-            {
-                IEnumerable<Claim> claims = externalLogin.GetClaims();
-                ClaimsIdentity identity = new ClaimsIdentity(claims, OAuthDefaults.AuthenticationType);
-                Authentication.SignIn(identity);
-            }
-
-            return Ok();
-        }
-
-        // GET api/Account/ExternalLogins?returnUrl=%2F&generateState=true
-        [AllowAnonymous]
-        [Route("ExternalLogins")]
-        public IEnumerable<ExternalLoginViewModel> GetExternalLogins(string returnUrl, bool generateState = false)
-        {
-            IEnumerable<AuthenticationDescription> descriptions = Authentication.GetExternalAuthenticationTypes();
-            List<ExternalLoginViewModel> logins = new List<ExternalLoginViewModel>();
-
-            string state;
-
-            if (generateState)
-            {
-                const int strengthInBits = 256;
-                state = RandomOAuthStateGenerator.Generate(strengthInBits);
-            }
-            else
-            {
-                state = null;
-            }
-
-            foreach (AuthenticationDescription description in descriptions)
-            {
-                ExternalLoginViewModel login = new ExternalLoginViewModel
-                {
-                    Name = description.Caption,
-                    Url = Url.Route("ExternalLogin", new
-                    {
-                        provider = description.AuthenticationType,
-                        response_type = "token",
-                        client_id = Startup.PublicClientId,
-                        redirect_uri = new Uri(Request.RequestUri, returnUrl).AbsoluteUri,
-                        state = state
-                    }),
-                    State = state
-                };
-                logins.Add(login);
-            }
-
-            return logins;
-        }
-
         // POST api/Account/Register
         [AllowAnonymous]
         [Route("Register")]
@@ -338,39 +136,6 @@ namespace TextIt.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok();
-        }
-
-        // POST api/Account/RegisterExternal
-        [OverrideAuthentication]
-        [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
-        [Route("RegisterExternal")]
-        public async Task<IHttpActionResult> RegisterExternal(RegisterExternalBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var info = await Authentication.GetExternalLoginInfoAsync();
-            if (info == null)
-            {
-                return InternalServerError();
-            }
-
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-
-            IdentityResult result = await UserManager.CreateAsync(user);
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            result = await UserManager.AddLoginAsync(user.Id, info.Login);
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result); 
-            }
             return Ok();
         }
 
@@ -406,10 +171,18 @@ namespace TextIt.Controllers
 
             if (!hasRegistered)
             {
-                user = new ApplicationUser { UserName = externalLogin.Email, Email = externalLogin.Email};
-                result = await UserManager.CreateAsync(user);
+                user = new ApplicationUser
+                {
+                    UserName = externalLogin.ProviderKey,
+                    Email = externalLogin.Email,
+                    ProfilePicture = externalLogin.ProfilePicture,
+                    CoverPicture = externalLogin.CoverPicture,
+                    Gender = externalLogin.Gender,
+                    Verified = externalLogin.Verified,
+                    Name = externalLogin.Name,
 
-                if (!result.Succeeded) return InternalServerError();
+                };
+                result = await UserManager.CreateAsync(user);
 
                 if (!result.Succeeded)
                 {
@@ -469,10 +242,7 @@ namespace TextIt.Controllers
 
         #region Helpers
 
-        private IAuthenticationManager Authentication
-        {
-            get { return Request.GetOwinContext().Authentication; }
-        }
+        private IAuthenticationManager Authentication => Request.GetOwinContext().Authentication;
 
         private IHttpActionResult GetErrorResult(IdentityResult result)
         {
@@ -510,6 +280,12 @@ namespace TextIt.Controllers
             public string UserName { get; set; }
             public string Email { get; set; }
 
+            public string Name { get; set; }
+            public Gender Gender { get; set; }
+            public bool Verified { get; set; }
+            public string CoverPicture { get; set; }
+            public string ProfilePicture { get; set; }
+
             public IList<Claim> GetClaims()
             {
                 IList<Claim> claims = new List<Claim>();
@@ -523,7 +299,7 @@ namespace TextIt.Controllers
                 return claims;
             }
 
-            public static ExternalLoginData FromIdentity(ClaimsIdentity identity)
+            public static async Task<ExternalLoginData> FromIdentity(ClaimsIdentity identity, UserManager<ApplicationUser> manager)
             {
                 Claim providerKeyClaim = identity?.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -532,106 +308,146 @@ namespace TextIt.Controllers
                     return null;
                 }
 
-                if (providerKeyClaim.Issuer == ClaimsIdentity.DefaultIssuer)
-                {
+                var user = await manager.FindByIdAsync(identity.GetUserId());
+                if (user == null)
                     return null;
-                }
-
                 return new ExternalLoginData
                 {
                     LoginProvider = providerKeyClaim.Issuer,
                     ProviderKey = providerKeyClaim.Value,
-                    UserName = identity.FindFirstValue(ClaimTypes.Name)
+                    UserName = user.UserName,
+                    CoverPicture = user.CoverPicture,
+                    ProfilePicture = user.ProfilePicture,
+                    Email = user.Email,
+                    Gender = user.Gender,
+                    Name = user.Name,
+                    Verified = user.Verified
                 };
             }
+
+            private static string GetUserProfileEndPoint(string provider, string accessToken)
+            {
+                switch (provider)
+                {
+                    case "Facebook":
+                        return $"https://graph.facebook.com/me?fields=email,name,age_range,gender,verified,cover&access_token={accessToken}";
+                }
+                return null;
+            }
+            private static string GetUserProfilePictureEndPoint(string provider, string accessToken)
+            {
+                switch (provider)
+                {
+                    case "Facebook":
+                        return $"https://graph.facebook.com/me/picture?redirect=false&type=large&access_token={accessToken}";
+                }
+                return null;
+            }
+            private static string GetAppProfileEndPoint(string provider, string accessToken)
+            {
+                switch (provider)
+                {
+                    case "Facebook":
+                        return $"https://graph.facebook.com/app?fields=id&access_token={accessToken}";
+                }
+                return null;
+            }
+
+            private static ExternalLoginData FromJObject(dynamic iObj)
+            {
+                if (iObj["id"] == null) return null;
+                if (iObj["email"] == null) return null;
+                if (iObj["name"] == null) return null;
+                var loginData = new ExternalLoginData
+                {
+                    Email = iObj["email"],
+                    Name = iObj["name"],
+                    ProviderKey = iObj["id"],
+                    Verified = iObj["verified"]
+                };
+                if (iObj["cover"] != null)
+                {
+                    loginData.CoverPicture = iObj["cover"]["source"] ?? "";
+                }
+                loginData.Gender = iObj["gender"];
+                return loginData;
+            }
+
             public static async Task<ExternalLoginData> FromToken(string provider, string accessToken)
             {
-
-                string verifyTokenEndPoint = "", verifyAppEndpoint = "";
-                var email = "";
-                HttpClient client = new HttpClient();
-
-                if (provider == "Facebook")
+                ExternalLoginData loginData = null;
+                using (var client = new HttpClient())
                 {
-                    verifyTokenEndPoint = $"https://graph.facebook.com/me?access_token={accessToken}";
-                    verifyAppEndpoint = $"https://graph.facebook.com/app?access_token={accessToken}";
-                }
-                else
-                {
-                    return null;
-                }
+                    var verifyTokenEndPoint = GetUserProfileEndPoint(provider, accessToken);
+                    var verifyTokenPicturendPoint = GetUserProfilePictureEndPoint(provider, accessToken);
+                    var verifyAppEndpoint = GetAppProfileEndPoint(provider, accessToken);
 
-                Uri uri = new Uri(verifyTokenEndPoint);
-                HttpResponseMessage response = await client.GetAsync(uri);
-                ClaimsIdentity identity = null;
+                    if (verifyTokenEndPoint == null || verifyAppEndpoint == null)
+                        return null;
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    dynamic iObj = (JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(content);
-                    email = iObj["email"];
-
-                    identity = new ClaimsIdentity(OAuthDefaults.AuthenticationType);
-
-                    if (provider == "Facebook")
+                    Uri uri = new Uri(verifyTokenEndPoint);
+                    using (HttpResponseMessage response = await client.GetAsync(uri))
                     {
-                        uri = new Uri(verifyAppEndpoint);
-                        response = await client.GetAsync(uri);
-                        content = await response.Content.ReadAsStringAsync();
-                        dynamic appObj = (Newtonsoft.Json.Linq.JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(content);
-                        if (appObj["id"] != Startup.FacebookAuthOptions.AppId)
+                        ClaimsIdentity identity = null;
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var content = await response.Content.ReadAsStringAsync();
+                            dynamic iObj = (JObject) Newtonsoft.Json.JsonConvert.DeserializeObject(content);
+                            loginData = FromJObject(iObj);
+                            if (loginData == null)
+                                return null;
+                            using (var profilePictureResponse = await client.GetAsync(verifyTokenPicturendPoint))
+                            {
+                                if (profilePictureResponse.IsSuccessStatusCode)
+                                {
+                                    var appContent = await profilePictureResponse.Content.ReadAsStringAsync();
+                                    dynamic profilePictureContent = (JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(appContent);
+                                    loginData.ProfilePicture = profilePictureContent["data"]["url"] ?? "";
+                                }
+                            }
+
+                            identity = new ClaimsIdentity(OAuthDefaults.AuthenticationType);
+
+                            if (provider == "Facebook")
+                            {
+                                uri = new Uri(verifyAppEndpoint);
+                                using (var appResonse = await client.GetAsync(uri))
+                                {
+                                    var appContent = await appResonse.Content.ReadAsStringAsync();
+                                    dynamic appObj = (JObject) Newtonsoft.Json.JsonConvert.DeserializeObject(appContent);
+
+                                    if (appObj["id"] != Startup.FacebookAuthOptions.AppId)
+                                    {
+                                        return null;
+                                    }
+                                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, iObj["id"].ToString(),
+                                        ClaimValueTypes.String, "Facebook", "Facebook"));
+                                }
+
+                            }
+                        }
+                        Claim providerKeyClaim = identity?.FindFirst(ClaimTypes.NameIdentifier);
+
+                        if (string.IsNullOrEmpty(providerKeyClaim?.Issuer) ||
+                            string.IsNullOrEmpty(providerKeyClaim.Value))
                         {
                             return null;
                         }
 
-                        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, iObj["id"].ToString(), ClaimValueTypes.String, "Facebook", "Facebook"));
-
+                        if (providerKeyClaim.Issuer == ClaimsIdentity.DefaultIssuer)
+                        {
+                            return null;
+                        }
+                        loginData.LoginProvider = provider;
+                        loginData.UserName = loginData.Email;
+                        return loginData;
                     }
                 }
-
-                Claim providerKeyClaim = identity?.FindFirst(ClaimTypes.NameIdentifier);
-
-                if (string.IsNullOrEmpty(providerKeyClaim?.Issuer) || string.IsNullOrEmpty(providerKeyClaim.Value))
-                {
-                    return null;
-                }
-
-                if (providerKeyClaim.Issuer == ClaimsIdentity.DefaultIssuer)
-                {
-                    return null;
-                }
-                return new ExternalLoginData
-                {
-                    LoginProvider = providerKeyClaim.Issuer,
-                    ProviderKey = providerKeyClaim.Value,
-                    UserName = email,
-                    Email = email
-                };
             }
         }
 
 
-        private static class RandomOAuthStateGenerator
-        {
-            private static RandomNumberGenerator _random = new RNGCryptoServiceProvider();
-
-            public static string Generate(int strengthInBits)
-            {
-                const int bitsPerByte = 8;
-
-                if (strengthInBits % bitsPerByte != 0)
-                {
-                    throw new ArgumentException("strengthInBits must be evenly divisible by 8.", "strengthInBits");
-                }
-
-                int strengthInBytes = strengthInBits / bitsPerByte;
-
-                byte[] data = new byte[strengthInBytes];
-                _random.GetBytes(data);
-                return HttpServerUtility.UrlTokenEncode(data);
-            }
-        }
-
-        #endregion
+       #endregion
     }
 }
