@@ -1,5 +1,6 @@
 ﻿using System.Web;
 using System.Web.Optimization;
+#pragma warning disable 1591
 
 namespace TextIt
 {

@@ -3,6 +3,7 @@ using System.Web.Http;
 using System.Web.Mvc;
 using TextIt.Areas.HelpPage.ModelDescriptions;
 using TextIt.Areas.HelpPage.Models;
+#pragma warning disable 1591
 
 namespace TextIt.Areas.HelpPage.Controllers
 {

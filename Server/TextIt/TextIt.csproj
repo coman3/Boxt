@@ -34,6 +34,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>App_Data\docs.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -215,9 +216,11 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\GameApplicationFlowsController.cs" />
+    <Compile Include="Controllers\GameApplicationsController.cs" />
     <Compile Include="Controllers\GameController.cs" />
-    <Compile Include="Controllers\GamesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\InviteController.cs" />
     <Compile Include="Games\GameState.cs" />
     <Compile Include="Games\TicTacToeGameState.cs" />
     <Compile Include="Global.asax.cs">
@@ -285,6 +288,34 @@
     <Compile Include="Migrations\201610121148248_AddFacebookUserId.Designer.cs">
       <DependentUpon>201610121148248_AddFacebookUserId.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201610130036220_AddFacebookAccessTokenToUser.cs" />
+    <Compile Include="Migrations\201610130036220_AddFacebookAccessTokenToUser.Designer.cs">
+      <DependentUpon>201610130036220_AddFacebookAccessTokenToUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610140442157_ReworkGameStructure.cs" />
+    <Compile Include="Migrations\201610140442157_ReworkGameStructure.Designer.cs">
+      <DependentUpon>201610140442157_ReworkGameStructure.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610140610264_DatabaseCreateId.cs" />
+    <Compile Include="Migrations\201610140610264_DatabaseCreateId.Designer.cs">
+      <DependentUpon>201610140610264_DatabaseCreateId.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610140621482_GameAppAddFlow.cs" />
+    <Compile Include="Migrations\201610140621482_GameAppAddFlow.Designer.cs">
+      <DependentUpon>201610140621482_GameAppAddFlow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610140655018_RemoveAutoGenerate.cs" />
+    <Compile Include="Migrations\201610140655018_RemoveAutoGenerate.Designer.cs">
+      <DependentUpon>201610140655018_RemoveAutoGenerate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610140959540_RemoveAutoGenerate1.cs" />
+    <Compile Include="Migrations\201610140959540_RemoveAutoGenerate1.Designer.cs">
+      <DependentUpon>201610140959540_RemoveAutoGenerate1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201610180742203_AddGameAppOrder.cs" />
+    <Compile Include="Migrations\201610180742203_AddGameAppOrder.Designer.cs">
+      <DependentUpon>201610180742203_AddGameAppOrder.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
@@ -300,6 +331,7 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Games\TicTacToe\icon.svg" />
     <Content Include="Content\Logo-Release-NoBubbleDots.svg" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
@@ -371,6 +403,17 @@
     <Content Include="Scripts\jquery-3.1.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.1.1.min.map" />
     <Content Include="Views\Home\Test.cshtml" />
+    <Content Include="Views\GameApplications\Create.cshtml" />
+    <Content Include="Views\GameApplications\Delete.cshtml" />
+    <Content Include="Views\GameApplications\Details.cshtml" />
+    <Content Include="Views\GameApplications\Edit.cshtml" />
+    <Content Include="Views\GameApplications\Index.cshtml" />
+    <Content Include="Views\GameApplicationFlows\Create.cshtml" />
+    <Content Include="Views\GameApplicationFlows\Delete.cshtml" />
+    <Content Include="Views\GameApplicationFlows\Details.cshtml" />
+    <Content Include="Views\GameApplicationFlows\Edit.cshtml" />
+    <Content Include="Views\GameApplicationFlows\Index.cshtml" />
+    <Content Include="Views\GameApplications\EditorTemplates\GameApplicationFlow.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -424,6 +467,27 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201610121148248_AddFacebookUserId.resx">
       <DependentUpon>201610121148248_AddFacebookUserId.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610130036220_AddFacebookAccessTokenToUser.resx">
+      <DependentUpon>201610130036220_AddFacebookAccessTokenToUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610140442157_ReworkGameStructure.resx">
+      <DependentUpon>201610140442157_ReworkGameStructure.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610140610264_DatabaseCreateId.resx">
+      <DependentUpon>201610140610264_DatabaseCreateId.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610140621482_GameAppAddFlow.resx">
+      <DependentUpon>201610140621482_GameAppAddFlow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610140655018_RemoveAutoGenerate.resx">
+      <DependentUpon>201610140655018_RemoveAutoGenerate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610140959540_RemoveAutoGenerate1.resx">
+      <DependentUpon>201610140959540_RemoveAutoGenerate1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201610180742203_AddGameAppOrder.resx">
+      <DependentUpon>201610180742203_AddGameAppOrder.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

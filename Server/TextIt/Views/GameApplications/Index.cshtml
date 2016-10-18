@@ -1,0 +1,63 @@
+﻿@model IEnumerable<TextIt.Models.GameApplication>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Id)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MinPlayers)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MaxPlayers)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.GameStateType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CategoriesList)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <th>
+            @Html.DisplayFor(model => item.Id)
+        </th>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.MinPlayers)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.MaxPlayers)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.GameStateType)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CategoriesList)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new {id = item.Id}) |
+            @Html.ActionLink("Details", "Details", new {id = item.Id}) |
+            @Html.ActionLink("Delete", "Delete", new {id = item.Id})
+        </td>
+    </tr>
+}
+
+</table>

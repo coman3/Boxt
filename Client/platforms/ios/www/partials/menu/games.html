@@ -1,0 +1,11 @@
+<section-header header="{{subHeader}}" ng-if="games.length > 0">
+	<game-grid-list games="games" cols="2" row-height="1:1" item-click="gridItemClick"></game-grid-list>
+</section-header>
+
+<section ng-if="game != null" layout="column" layout-fill layout-align="start stretch">
+	<div ng-style="game.Flow.Style" flex layout="column" layout-align="center center" style="min-height: 300px;">
+		<img ng-src="{{game.Flow.IconPath}}" />
+		<h1>{{game.Name}}</h1>
+	</div>
+	<friend-selector header-message="Invite Friends" on-friend-selected="selectInviteFriend"></friend-selector>
+</section>

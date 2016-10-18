@@ -1,5 +1,6 @@
 using System.Web.Http;
 using System.Web.Mvc;
+#pragma warning disable 1591
 
 namespace TextIt.Areas.HelpPage
 {

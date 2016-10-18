@@ -15,7 +15,8 @@ using System.Web.Http;
 #if Handle_PageResultOfT
 using System.Web.Http.OData;
 #endif
-
+#pragma warning disable 1591
+// ReSharper disable once CheckNamespace
 namespace TextIt.Areas.HelpPage
 {
     /// <summary>
@@ -78,6 +79,8 @@ namespace TextIt.Areas.HelpPage
             //// Uncomment the following to correct the sample response when the action returns an HttpResponseMessage with ObjectContent<string>.
             //// The sample will be generated as if the controller named "Values" and action named "Post" were returning a string.
             //config.SetActualResponseType(typeof(string), "Values", "Post");
+
+            config.SetDocumentationProvider(new XmlDocumentationProvider(HttpContext.Current.Server.MapPath("~/App_Data/docs.xml")));
         }
 
 #if Handle_PageResultOfT

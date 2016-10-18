@@ -13,6 +13,7 @@ using Microsoft.Owin.Security.OAuth;
 using Owin;
 using TextIt.Providers;
 using TextIt.Models;
+#pragma warning disable 1591
 
 namespace TextIt
 {

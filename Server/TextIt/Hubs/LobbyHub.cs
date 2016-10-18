@@ -11,18 +11,25 @@ using Microsoft.Owin.Security;
 using TextIt.Games;
 using TextIt.Models;
 using WebGrease.Configuration;
+#pragma warning disable 1591
 
 namespace TextIt.Hubs
 {
     public class LobbyHub : Hub<ILobbyHub>
     {
-        private ApplicationDbContext _dbContext = new ApplicationDbContext();
+        private readonly ApplicationDbContext _dbContext = new ApplicationDbContext();
         public static Dictionary<string, string> UserMatches = new Dictionary<string, string>();
         public static Dictionary<string, GameState> GameStates = new Dictionary<string, GameState>();
         public static Dictionary<string, List<string>> UserGames = new Dictionary<string, List<string>>();
-        public LobbyHub()
+
+        public static void NotifyUsers(UserNotify data, params string[] userId)
         {
-            
+            var clientProxy = GlobalHost.ConnectionManager.GetHubContext<LobbyHub>();
+            var relatedClients = UserMatches.Where(x => userId.Contains(x.Value)).Select(x=> x.Key).ToList();
+            if (relatedClients.Count <= 0)
+                return;
+
+            clientProxy.Clients.Clients(relatedClients).Update(data);
         }
 
         public void UpdateGame(string gameId, dynamic state)
@@ -39,6 +46,24 @@ namespace TextIt.Hubs
         {
             return UserMatches[Context.ConnectionId];
         }
+
+        public void LeaveGame(string gameId)
+        {
+            if (IsNotLoggedIn())
+                return;
+            var game = _dbContext.Games
+                .Include(b => b.Owner)
+                .Include(b => b.Players)
+                .Include(b => b.GameApplication)
+                .FirstOrDefault(x => x.Id == gameId);
+            if (game == null || game.Players.All(x => x.Id != UserMatches[Context.ConnectionId]))
+                return;
+            if (GameStates.ContainsKey(game.Id) && UserGames.ContainsKey(GetUserId()) && UserGames[GetUserId()].Contains(game.Id))
+            {
+                UserGames[GetUserId()].Remove(gameId);
+            }
+        }
+
         public void JoinGame(string gameId)
         {
             if (IsNotLoggedIn())
@@ -46,12 +71,13 @@ namespace TextIt.Hubs
             var game = _dbContext.Games
                 .Include(b => b.Owner)
                 .Include(b => b.Players)
+                .Include(b => b.GameApplication)
                 .FirstOrDefault(x => x.Id == gameId);
             if (game == null || game.Players.All(x => x.Id != UserMatches[Context.ConnectionId]))
                 return;
             if (!GameStates.ContainsKey(game.Id))
             {
-                GameStates[game.Id] = GameState.GetGameStateFromType(game);
+                GameStates[game.Id] = game.GetGameState();
                 GameStates[game.Id].LoadFromCompressedSave();
                 GameStates[game.Id].Running = true;
                 GameStates[game.Id].OnGameStateUpdate += LobbyHub_OnGameStateUpdate;
@@ -75,7 +101,7 @@ namespace TextIt.Hubs
             {
                 GameEnd = new
                 {
-                    args.Reason,
+                    Data = args,
                     sender.Game.Id,
                 }
             });
@@ -90,7 +116,6 @@ namespace TextIt.Hubs
 
         public void Login(string token)
         {
-            if(!IsNotLoggedIn()) return;
             try
             {
                 AuthenticationTicket ticket = Startup.OAuthOptions.AccessTokenFormat.Unprotect(token);
@@ -98,6 +123,13 @@ namespace TextIt.Hubs
                 {
                     ClaimsIdentity identity = ticket.Identity;
                     var userId = identity.GetUserId();
+                    foreach (var userMatch in UserMatches)
+                    {
+                        if (userMatch.Value != userId) continue;
+
+                        UserMatches[userMatch.Key] = "*LOG_OUT:OTHER_USER";
+                        break;
+                    }
                     UserMatches[Context.ConnectionId] = userId;
                     Clients.Caller.Update(new
                     {
@@ -129,10 +161,16 @@ namespace TextIt.Hubs
                 });
             }
         }
+
         public override Task OnConnected()
         {
             UserMatches[Context.ConnectionId] = null;
             return base.OnConnected();
+        }
+
+        public override Task OnReconnected()
+        {
+            return base.OnReconnected();
         }
 
         public override Task OnDisconnected(bool stopCalled)
@@ -142,13 +180,47 @@ namespace TextIt.Hubs
         }
         private bool IsNotLoggedIn()
         {
-            return UserMatches[Context.ConnectionId] == null;
+            if (UserMatches.ContainsKey(Context.ConnectionId) && UserMatches[Context.ConnectionId] != null && !UserMatches[Context.ConnectionId].StartsWith("*"))
+                return false;
+
+            Clients.Caller.Update(new
+            {
+                Error = new
+                {
+                    Connected = false,
+                    Error = "Login Check Failed. Please Login."
+                }
+            });
+            return true;
         }
+    }
+
+    public class UserNotify
+    {
+        public UserNotifyToast Toast { get; set; }
+        public UserNotifyEvent Event { get; set; }
+    }
+
+    public class UserNotifyEvent
+    {
+        public dynamic Event { get; set; }
+    }
+
+    public class UserNotifyToast
+    {
+        public UserNotifyToast(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; set; }
+
     }
 
     public interface ILobbyHub
     {
         void ServerMessage(dynamic message);
         void Update(dynamic state);
+        void Notify(dynamic state); //TODO;
     }
 }

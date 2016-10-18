@@ -5,16 +5,15 @@
 		<meta name="format-detection" content="telephone=no">
 		<meta name="msapplication-tap-highlight" content="no">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" type="text/css" href="css/index.css">
-
 		<link rel="stylesheet" type="text/css" href="css/lib/angular-material.css">
 		<link rel="stylesheet" type="text/css" href="css/lib/material-icons.css">
 		<link rel="stylesheet" type="text/css" href="css/lib/font-awesome.css">
+		<link rel="stylesheet" type="text/css" href="css/index.css">
 		<title>Loading...</title>
 
 	</head>
 
-	<body>
+	<body ng-controller="NavigationController">
 		<script type="text/javascript" src="cordova.js"></script>
 
 		<script src="js/lib/angular.min.js"></script>
@@ -28,34 +27,45 @@
 
 		<!-- App Scripts -->
 		<script src="js/global.js"></script>
+		<script src="js/helpers.js"></script>
+		<script src="js/ads.js"></script>
+		<script src="js/appDirectives.js"></script>
+		<script src="js/gameService.js"></script>
+		<script src="js/notifyService.js"></script>
 		<script src="js/appService.js"></script>
-		<script src="js/common.js"></script>
-		<script src="js/app.js"></script>
-
-		<div ng-controller="NavigationController" layout="column">
-			<section layout="row" flex="" ng-if="showNavigation">
-				<md-toolbar>
-					<div class="md-toolbar-tools">
-						<md-button class="md-icon-button" aria-label="Settings" ng-click="toggleNav()">
-							<md-icon>menu</md-icon>
-						</md-button>
-						<h2>
-							Game Lobby
-						</h2>
-					</div>
-				</md-toolbar>
-				<md-sidenav class="md-sidenav-left" md-component-id="left" md-whiteframe="4">
+		<script src="js/appControllers.js"></script>
+		<script src="js/gameControllers.js"></script>
+		<script src="js/menuControllers.js"></script>
+		<div layout="row" layout-fill>
+			<section layout="column" flex>
+				<md-sidenav ng-if="showNavigation" class="md-sidenav-left" md-component-id="left" md-whiteframe="4">
 					<md-toolbar class="md-theme-indigo">
 						<div class="md-toolbar-tools">
 							<md-button ng-click="toggleNav()" class="md-icon-button" aria-label="close">
 								<md-icon>close</md-icon>
 							</md-button>
+							<h2>
+								{{MenuTitle}}
+							</h2>
 						</div>
 					</md-toolbar>
 					<md-content>
 						<md-list>
+							<section ng-if="getUserInfo() != null">
+								<md-card>
+									<md-card-title>
+										<md-card-title-text>
+											<span class="md-headline">{{getUserInfo().Name}}</span>
+										</md-card-title-text>
+										<md-card-title-media>
+											<div class="md-media-sm card-media" ng-style="{'background': 'url(' + getUserInfo().ProfilePicture + ') no-repeat center center fixed', 'background-size': 'cover'}">
+											</div>
+										</md-card-title-media>
+									</md-card-title>
+								</md-card>
+							</section>
 							<section ng-repeat="menuItem in MenuItems">
-								<md-subheader>{{menuItem.GroupTitle}}</md-subheader>
+								<md-subheader ng-if="menuItem.GroupTitle != null">{{menuItem.GroupTitle}}</md-subheader>
 								<md-list-item ng-repeat="item in menuItem.Items" ng-click="item.Click()">
 									<md-icon ng-if="item.Icon.Type == 'FA'">
 										<i ng-class="'fa fa-' + item.Icon.Icon" aria-hidden="true"></i>
@@ -63,16 +73,26 @@
 									<md-icon ng-if="item.Icon.Type == 'MD'">{{item.Icon.Icon}}</md-icon>
 									<p>{{item.Title}}</p>
 								</md-list-item>
+								<md-divider ng-if="!$last"></md-divider>
 							</section>
-							<md-divider ng-repeat="menuItem in MenuItems" ng-if="!$last"></md-divider>
 						</md-list>
 					</md-content>
 				</md-sidenav>
+				<md-toolbar ng-if="showNavigation">
+					<div class="md-toolbar-tools">
+						<md-button class="md-icon-button" aria-label="Settings" ng-click="toggleNav()">
+							<md-icon>menu</md-icon>
+						</md-button>
+						<h2>
+							{{NavigationTitle}}
+						</h2>
+					</div>
+				</md-toolbar>
+				<md-content flex>
+					<ng-view></ng-view>
+				</md-content>
 			</section>
 		</div>
-		<md-content style="position: absolute; top:48px; left:0; right:0; bottom:0;">
-			<ng-view></ng-view>
-		</md-content>
 	</body>
 
 </html>

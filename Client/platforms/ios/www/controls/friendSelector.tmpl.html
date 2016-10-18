@@ -1,0 +1,28 @@
+<section-header header="{{headerMessage}}">
+	<md-content class="md-padding autocomplete" layout="column">
+		<md-contact-chips ng-model="friends" md-contacts="querySearch($query)" md-contact-name="Name" md-contact-image="ProfilePicture"
+			md-require-match="true" md-highlight-flags="i" filter-selected="filterSelected" placeholder="{{headerMessage}}">
+		</md-contact-chips>
+		<md-button ng-click="removeFriend(contact)">
+			<md-icon>close</md-icon>
+		</md-button>
+		<md-list class="fixedRows">
+			<md-subheader class="md-no-sticky" ng-if="friends.length > 0">Selected Friends</md-subheader>
+			<md-list-item class="md-2-line contact-item selected" ng-repeat="(index, contact) in friends" ng-if="friends.length > 0">
+				<img ng-src="{{contact.ProfilePicture}}" class="md-avatar" alt="{{contact.Name}}" />
+				<div class="md-list-item-text compact">
+					<h3>{{contact.Name}}</h3>
+				</div>
+				<md-button class="md-secondary md-icon-button" ng-click="removeFriend(contact)">
+					<md-icon>close</md-icon>
+				</md-button>
+			</md-list-item>
+			<md-subheader class="md-no-sticky">All Friends</md-subheader>
+			<md-list-item class="md-2-line contact-item" ng-repeat="(index, contact) in allFriends" ng-click="addFriend(contact)">
+				<img ng-src="{{contact.ProfilePicture}}" class="md-avatar" alt="{{contact.Name}}" />
+				<div class="md-list-item-text compact">
+					<h3>{{contact.Name}}</h3>
+				</div>
+			</md-list-item>
+		</md-list>
+</section-header>

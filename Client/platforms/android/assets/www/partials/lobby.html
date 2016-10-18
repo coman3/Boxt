@@ -1,35 +1,58 @@
-<div layout="column" flex layout-fill ng-cloak>
-	<md-content flex>
-		<section>
-			<md-subheader class="md-primary">Games in progress</md-subheader>
-			<md-list flex>
-				<md-list-item class="md-3-line" ng-repeat="item in GamesInProgress">
-					<img ng-src="{{item.Owner.ProfilePicture}}" class="md-avatar" alt="{{item.Owner.Name}}" />
-					<div class="md-list-item-text" layout="column">
-						<h3>{{ item.Owner.Name }}</h3>
-						<h4>{{ item.DateCreated }}</h4>
-						<p>{{ item.GameType }}</p>
-					</div>
-					<md-button class="md-secondary md-icon-button" ng-class="GameInProgressClick(item)">
-						<md-icon>play</md-icon>
-					</md-button>
-				</md-list-item>
-				<md-divider></md-divider>
-			</md-list>
-		</section>
-		<section>
-			<md-subheader class="md-primary">Featured Games</md-subheader>
-			<md-grid-list md-cols="2" md-cols-sm="3" md-cols-md="4" md-cols-gt-md="6" md-row-height-gt-md="1:1" md-row-height="4:3" md-gutter="8px"
-				md-gutter-gt-sm="4px">
-
-				<md-grid-tile ng-repeat="tile in tiles" md-rowspan="{{tile.span.row}}" md-colspan="{{tile.span.col}}" md-colspan-sm="1" md-colspan-xs="1"
-					ng-style="tile.style">
-					<md-icon md-svg-icon="{{tile.icon}}"></md-icon>
-					<md-grid-tile-footer>
-						<h3>{{tile.title}}</h3>
-					</md-grid-tile-footer>
-				</md-grid-tile>
-			</md-grid-list>
-		</section>
-	</md-content>
-</div>
+<section>
+	<md-subheader class="md-primary">Games in progress</md-subheader>
+	<md-list flex>
+		<md-list-item class="md-2-line" ng-if="games.length == 0">
+			<div class="md-list-item-text" layout="column">
+				<h3>No Games In Progress!</h3>
+				<p>Create one now?</p>
+			</div>
+			<md-button class="md-secondary md-icon-button" ng-click="BoxtService.navigate('menu/games/all')">
+				<md-icon>add</md-icon>
+			</md-button>
+		</md-list-item>
+		<md-list-item class="md-3-line" ng-repeat="item in games">
+			<img ng-src="{{item.Owner.ProfilePicture}}" class="md-avatar" alt="{{item.Owner.Name}}" />
+			<div class="md-list-item-text" layout="column">
+				<h3>{{ item.GameApplication.Name }}</h3>
+				<h4>{{ item.CreatedDate }}</h4>
+				<p>{{ item.GameApplication.Id }}</p>
+			</div>
+			<md-button class="md-secondary md-icon-button" ng-click="GameInProgressClick(item)">
+				<md-icon>play</md-icon>
+			</md-button>
+		</md-list-item>
+		<md-divider></md-divider>
+	</md-list>
+</section>
+<section>
+	<md-subheader class="md-primary">Game Invites</md-subheader>
+	<md-list flex>
+		<md-list-item class="md-2-line" ng-if="gameInvites.length == 0">
+			<div class="md-list-item-text" layout="column">
+				<h3>No Invites?!</h3>
+				<p>Invite Someone!</p>
+			</div>
+			<md-button class="md-secondary md-icon-button" ng-click="BoxtService.navigate('menu/invite/create')">
+				<md-icon>person_add</md-icon>
+			</md-button>
+		</md-list-item>
+		<md-list-item class="md-3-line" ng-repeat="item in gameInvites">
+			<img ng-src="{{item.Inviter.ProfilePicture}}" class="md-avatar" alt="{{item.Inviter.Name}}" />
+			<div class="md-list-item-text" layout="column">
+				<h3>{{ item.Game.GameApplication.Name }}</h3>
+				<h4>{{ item.Inviter.Name }}</h4>
+				<p>{{ item.Expiry }}</p>
+			</div>
+			<md-button class="md-secondary md-icon-button" ng-click="acceptInvite(item)">
+				<md-icon>check</md-icon>
+			</md-button>
+		</md-list-item>
+		<md-divider></md-divider>
+	</md-list>
+</section>
+<section-header header="Featured Games" ng-if="featuredTiles.length > 0">
+	<game-grid-list games="featuredTiles" cols="2" row-height="1:1" item-click="gameItemClick"></game-grid-list>
+</section-header>
+<section-header header="Popular Games" ng-if="popularTiles.length > 0">
+	<game-grid-list games="popularTiles" cols="2" row-height="1:1" item-click="gameItemClick"></game-grid-list>
+</section-header>

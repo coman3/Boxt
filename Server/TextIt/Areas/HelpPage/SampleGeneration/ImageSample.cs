@@ -1,5 +1,6 @@
 using System;
-
+#pragma warning disable 1591
+// ReSharper disable once CheckNamespace
 namespace TextIt.Areas.HelpPage
 {
     /// <summary>

@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
-
+#pragma warning disable 1591
 namespace TextIt.Results
 {
     public class ChallengeResult : IHttpActionResult

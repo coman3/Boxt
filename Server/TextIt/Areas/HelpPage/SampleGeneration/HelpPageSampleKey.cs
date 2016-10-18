@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net.Http.Headers;
-
+#pragma warning disable 1591
 namespace TextIt.Areas.HelpPage
 {
     /// <summary>

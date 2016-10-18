@@ -10,7 +10,7 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OAuth;
 using TextIt.Models;
-
+#pragma warning disable 1591
 namespace TextIt.Providers
 {
     public class ApplicationOAuthProvider : OAuthAuthorizationServerProvider

@@ -10,6 +10,7 @@ using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using Newtonsoft.Json;
 using TextIt.Models;
+#pragma warning disable 1591
 
 namespace TextIt.Games
 {
@@ -20,9 +21,13 @@ namespace TextIt.Games
         [JsonIgnore]
         public bool Running { get; set; }
         public Game Game { get; set; }
+        public Stack<string> PlayerTurns { get; set; }
+        public Dictionary<string, int> PlayerWins { get; set; }
         protected GameState(Game game)
         {
             Game = game;
+            PlayerTurns = new Stack<string>();
+            PlayerWins = new Dictionary<string, int>();
         }
         public abstract void LoadFromSave(string save);
         public void LoadFromCompressedSave(string data)
@@ -47,22 +52,7 @@ namespace TextIt.Games
         public abstract void SetupStart();
         public abstract void AddPlayer(ApplicationUser user);
 
-        public static GameState GetGameStateFromType(Game game)
-        {
-            GameState gameState;
-            switch (game.GameType)
-            {
-                case GameType.TicTacToe:
-                    gameState = new TicTacToeGameState(game);
-                    break;
-                default:
-                    gameState = null;
-                    break;
-            }
-            return gameState;
-        }
-
-        protected void EndGame(OnGameEndArgs args)
+        protected virtual void EndGame(OnGameEndArgs args)
         {
             OnGameEnd?.Invoke(this, args);
         }
@@ -137,7 +127,29 @@ namespace TextIt.Games
 
     public class OnGameEndArgs : EventArgs
     {
-        public string Reason { get; set; }
+        public string WinnerUserId { get; set; }
+        public GameWinReason Reason { get; set; }
+        public dynamic ExtraData { get; set; }
         public bool Dispose { get; set; }
+
+        public OnGameEndArgs(GameWinReason reason, dynamic extraData = null, bool dispose = false)
+        {
+            WinnerUserId = null;
+            Reason = reason;
+            Dispose = dispose;
+            ExtraData = extraData;
+        }
+        public OnGameEndArgs(GameWinReason reason, string winnerUserId, dynamic extraData = null, bool dispose = false)
+        {
+            WinnerUserId = winnerUserId;
+            Reason = reason;
+            Dispose = dispose;
+            ExtraData = extraData;
+        }
+        public enum GameWinReason
+        {
+            PlayerWin,
+            Timeout,
+        }
     }
 }

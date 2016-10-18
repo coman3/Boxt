@@ -1,0 +1,9 @@
+<md-grid-list md-cols="{{cols}}" md-row-height="{{rowHeight}}" md-gutter="4px">
+	<md-grid-tile ng-repeat="tile in games" md-rowspan="{{tile.Flow.RowSpan}}" md-colspan="{{tile.Flow.ColSpan}}" ng-style="tile.Flow.Style"
+		ng-click="itemClick(tile)">
+		<img ng-src="{{tile.Flow.IconPath}}" />
+		<md-grid-tile-footer>
+			<h3>{{tile.Name}}</h3>
+		</md-grid-tile-footer>
+	</md-grid-tile>
+</md-grid-list>

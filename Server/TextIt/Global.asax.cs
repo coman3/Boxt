@@ -6,7 +6,7 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-
+#pragma warning disable 1591
 namespace TextIt
 {
     public class WebApiApplication : System.Web.HttpApplication

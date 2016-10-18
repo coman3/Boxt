@@ -6,7 +6,7 @@ using System.Web.Http.Controllers;
 using System.Web.Http.Description;
 using System.Xml.XPath;
 using TextIt.Areas.HelpPage.ModelDescriptions;
-
+#pragma warning disable 1591
 namespace TextIt.Areas.HelpPage
 {
     /// <summary>

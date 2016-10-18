@@ -5,6 +5,7 @@ using Microsoft.AspNet.SignalR.Hubs;
 using Newtonsoft.Json;
 using TextIt.Hubs;
 using TextIt.Models;
+#pragma warning disable 1591
 
 namespace TextIt.Games
 {
@@ -55,14 +56,13 @@ namespace TextIt.Games
                 }
             }
         }
-        public string LastTurnUserId { get; set; }
         public Dictionary<string, GameBoard.BoardItem.BoardValue> BoardValues { get; set; }
         public override void LoadFromSave(string save)
         {
             var me = JsonConvert.DeserializeObject<TicTacToeGameState>(save);
             Board = me.Board;
             BoardValues = me.BoardValues;
-            LastTurnUserId = me.LastTurnUserId;
+            PlayerTurns = me.PlayerTurns;
         }
 
         public override string Save()
@@ -91,10 +91,14 @@ namespace TextIt.Games
                     new GameBoard.BoardItem(GameBoard.BoardItem.BottomRight, GameBoard.BoardItem.BoardValue.None),
                 }
             };
-            BoardValues = new Dictionary<string, GameBoard.BoardItem.BoardValue>
+            UpdateGameState(new OnGameStateUpdateArgs(new { Reset = true}, null));
+            if (BoardValues == null)
             {
-                [Game.Owner.Id] = GameBoard.BoardItem.BoardValue.Cross,
-            };
+                BoardValues = new Dictionary<string, GameBoard.BoardItem.BoardValue>
+                {
+                    [Game.Owner.Id] = GameBoard.BoardItem.BoardValue.Cross,
+                };
+            }
         }
 
         public override void AddPlayer(ApplicationUser user)
@@ -110,23 +114,21 @@ namespace TextIt.Games
 
             if (newState["turn"] != null)
             {
-                if (LastTurnUserId == currentUserId) return;
+                if (PlayerTurns.Count > 0 && PlayerTurns.Peek() == currentUserId) return;
                 if (!BoardValues.ContainsKey(currentUserId)) return;
-                var index = (int) newState["turn"]["index"];
-                if (0 <= index && index < Board.Items.Length)
-                {
-                    var boardItem = Board[index];
-                    if (boardItem.Value == GameBoard.BoardItem.BoardValue.None)
-                    {
-                        LastTurnUserId = currentUserId;
-                        boardItem.Value = BoardValues[currentUserId];
-                        newState.turn.value = boardItem.Value;
-                        UpdateGameState(new OnGameStateUpdateArgs(newState, context));
-                    }
-                }
-            }
 
-            CheckFinshed();
+                var index = (int) newState["turn"]["index"];
+                if (0 > index || index >= Board.Items.Length) return;
+
+                var boardItem = Board[index];
+                if (boardItem.Value != GameBoard.BoardItem.BoardValue.None) return;
+
+                PlayerTurns.Push(currentUserId);
+                boardItem.Value = BoardValues[currentUserId];
+                newState.turn.value = boardItem.Value;
+                UpdateGameState(new OnGameStateUpdateArgs(newState, context));
+                CheckFinshed();
+            }
         }
 
         
@@ -145,7 +147,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.MiddleMiddle).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.BottomRight).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new [] { GameBoard.BoardItem.TopLeft, GameBoard.BoardItem.MiddleMiddle, GameBoard.BoardItem.BottomRight }
+                    }));
                     return;
                 }
                 //  #
@@ -155,7 +160,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.MiddleMiddle).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.BottomLeft).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.TopRight, GameBoard.BoardItem.MiddleMiddle, GameBoard.BoardItem.BottomLeft }
+                    }));
                     return;
                 }
                 //###
@@ -165,7 +173,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.TopMiddle).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.TopRight).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.TopLeft, GameBoard.BoardItem.TopMiddle, GameBoard.BoardItem.TopRight }
+                    }));
                     return;
                 }
                 //
@@ -175,7 +186,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.MiddleMiddle).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.MiddleRight).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.MiddleLeft, GameBoard.BoardItem.MiddleMiddle, GameBoard.BoardItem.MiddleRight }
+                    }));
                     return;
                 }
                 //
@@ -185,7 +199,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.BottomMiddle).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.BottomRight).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.BottomLeft, GameBoard.BoardItem.BottomMiddle, GameBoard.BoardItem.BottomRight }
+                    }));
                     return;
                 }
                 //#
@@ -195,7 +212,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.MiddleLeft).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.BottomLeft).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.TopLeft, GameBoard.BoardItem.MiddleMiddle, GameBoard.BoardItem.BottomRight }
+                    }));
                     return;
                 }
                 // #
@@ -205,7 +225,10 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.MiddleMiddle).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.BottomMiddle).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.TopMiddle, GameBoard.BoardItem.MiddleMiddle, GameBoard.BoardItem.BottomMiddle }
+                    }));
                     return;
                 }
                 //  #
@@ -215,11 +238,24 @@ namespace TextIt.Games
                     getItemFromPos(GameBoard.BoardItem.MiddleLeft).Value == value &&
                     getItemFromPos(GameBoard.BoardItem.BottomLeft).Value == value)
                 {
-                    EndGame(new OnGameEndArgs { Dispose = true, Reason = "Player " + BoardValues.First(x => x.Value == value).Key + " Won" });
+                    EndGame(new OnGameEndArgs(OnGameEndArgs.GameWinReason.PlayerWin, PlayerTurns.Peek(), new
+                    {
+                        BoardWin = new[] { GameBoard.BoardItem.TopLeft, GameBoard.BoardItem.MiddleLeft, GameBoard.BoardItem.BottomLeft }
+                    }));
                     return;
                 }
 
             }
+        }
+
+        protected override void EndGame(OnGameEndArgs args)
+        {
+            if (args.Reason == OnGameEndArgs.GameWinReason.PlayerWin)
+            {
+                PlayerWins[args.WinnerUserId]++;
+                SetupStart();
+            }
+            base.EndGame(args);
         }
 
         public TicTacToeGameState(Game game) : base(game)

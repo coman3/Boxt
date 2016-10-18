@@ -4,6 +4,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using TextIt.Models;
+#pragma warning disable 1591
 
 namespace TextIt
 {

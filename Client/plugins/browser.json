@@ -20,7 +20,17 @@
             "APP_ID": "195236404242557",
             "APP_NAME": "Boxt",
             "PACKAGE_NAME": "com.coman3.Boxt"
+        },
+        "cordova-plugin-splashscreen": {
+            "PACKAGE_NAME": "com.coman3.Boxt"
+        },
+        "cordova-plugin-admobpro": {
+            "PACKAGE_NAME": "com.coman3.Boxt"
         }
     },
-    "dependent_plugins": {}
+    "dependent_plugins": {
+        "cordova-plugin-extension": {
+            "PACKAGE_NAME": "com.coman3.Boxt"
+        }
+    }
 }

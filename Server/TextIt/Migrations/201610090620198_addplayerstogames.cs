@@ -2,7 +2,7 @@ namespace TextIt.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
-    
+#pragma warning disable 1591
     public partial class addplayerstogames : DbMigration
     {
         public override void Up()

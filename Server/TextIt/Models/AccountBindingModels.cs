@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
-
+#pragma warning disable 1591
 namespace TextIt.Models
 {
     // Models used as parameters to AccountController actions.

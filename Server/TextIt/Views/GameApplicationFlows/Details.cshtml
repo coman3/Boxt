@@ -1,0 +1,50 @@
+﻿@model TextIt.Models.GameApplicationFlow
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>GameApplicationFlow</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.RowSpan)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RowSpan)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ColSpan)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ColSpan)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.StyleString)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.StyleString)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IconPath)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IconPath)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

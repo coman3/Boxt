@@ -22,6 +22,9 @@ using TextIt.Results;
 
 namespace TextIt.Controllers
 {
+    /// <summary>
+    /// A Controller for Authorization to this server
+    /// </summary>
     [Authorize]
     [RoutePrefix("api/Account")]
     public class AccountController : ApiController
@@ -29,11 +32,17 @@ namespace TextIt.Controllers
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
         private ApplicationDbContext _dbContext = new ApplicationDbContext();
-
+        /// <summary>
+        /// Contruct
+        /// </summary>
         public AccountController()
         {
         }
-
+        /// <summary>
+        /// Contruct with values
+        /// </summary>
+        /// <param name="userManager"><see cref="ApplicationUserManager"/></param>
+        /// <param name="accessTokenFormat"><see cref="ISecureDataFormat{AuthenticationTicket}"/></param>
         public AccountController(ApplicationUserManager userManager,
             ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
@@ -41,6 +50,9 @@ namespace TextIt.Controllers
             AccessTokenFormat = accessTokenFormat;
         }
 
+        /// <summary>
+        /// The User Manager for this Controller
+        /// </summary>
         public ApplicationUserManager UserManager
         {
             get
@@ -53,8 +65,18 @@ namespace TextIt.Controllers
             }
         }
 
+        /// <summary>
+        /// The Access Token Format for this Controller
+        /// </summary>
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
 
+        /// <summary>
+        /// Check if you are currently authenticated.
+        /// </summary>
+        /// <returns>
+        /// HTTP 202 if you are authenticated,
+        /// HTTP 403 if you are not
+        /// </returns>
         [HttpGet]
         [AllowAnonymous]
         [Route("Check")]
@@ -66,22 +88,30 @@ namespace TextIt.Controllers
         }
 
         // GET api/Account/UserInfo
-        [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
+        /// <summary>
+        /// Gets the current users infomation
+        /// </summary>
+        /// <returns></returns>
         [Route("UserInfo")]
         public async Task<UserInfoViewModel> GetUserInfo()
         {
-            ExternalLoginData externalLogin = await ExternalLoginData.FromIdentity(User.Identity as ClaimsIdentity, UserManager);
-
-            if (externalLogin == null) return null;
+            var userId = User.Identity.GetUserId();
+            var user = await UserManager.FindByIdAsync(userId);
             return new UserInfoViewModel
             {
-                CoverPicture = externalLogin.CoverPicture,
-                Email = externalLogin.Email,
-                Gender = externalLogin.Gender.ToString(),
-                Name = externalLogin.Name,
-                ProfilePicture = externalLogin.ProfilePicture
+                CoverPicture = user.CoverPicture,
+                Email = user.Email,
+                Gender = user.Gender.ToString(),
+                Name = user.Name,
+                ProfilePicture = user.ProfilePicture
             };
         }
+        /// <summary>
+        /// Gets a list of facebook friends that have logged in to
+        /// </summary>
+        /// <returns>
+        /// A <see cref="List{ApplicationUser}"/>
+        /// </returns>
         [Route("Friends")]
         public async Task<List<ApplicationUser>> GetUserFriends()
         {
@@ -92,6 +122,10 @@ namespace TextIt.Controllers
         }
 
         // POST api/Account/Logout
+        /// <summary>
+        /// Logout from the server
+        /// </summary>
+        /// <returns></returns>
         [Route("Logout")]
         public IHttpActionResult Logout()
         {
@@ -99,68 +133,15 @@ namespace TextIt.Controllers
             return Ok();
         }
 
-        // POST api/Account/ChangePassword
-        [Route("ChangePassword")]
-        public async Task<IHttpActionResult> ChangePassword(ChangePasswordBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword,
-                model.NewPassword);
-            
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
-
-        // POST api/Account/SetPassword
-        [Route("SetPassword")]
-        public async Task<IHttpActionResult> SetPassword(SetPasswordBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
-
-        // POST api/Account/Register
-        [AllowAnonymous]
-        [Route("Register")]
-        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-
-            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
-
         // POST api/Account/RegisterExternalToken
+        /// <summary>
+        /// Login / Register with a Facebook Token
+        /// </summary>
+        /// <param name="model">A <see cref="RegisterExternalTokenBindingModel"/> containing a facebook access token</param>
+        /// <returns>
+        /// A <see cref="ClaimsIdentity"/> if successful, 
+        /// otherwise a HTTP 500;
+        /// </returns>
         [OverrideAuthentication]
         [AllowAnonymous]
         [Route("RegisterExternalToken")]
@@ -188,7 +169,6 @@ namespace TextIt.Controllers
             ApplicationUser user = await UserManager.FindByEmailAsync(externalLogin.Email);
 
             bool hasRegistered = user != null;
-            IdentityResult result;
 
             if (!hasRegistered)
             {
@@ -201,9 +181,10 @@ namespace TextIt.Controllers
                     Gender = externalLogin.Gender,
                     Verified = externalLogin.Verified,
                     Name = externalLogin.Name,
-                    FacebookId = externalLogin.ProviderKey
+                    FacebookId = externalLogin.ProviderKey,
+                    FacebookAccessToken = model.Token
                 };
-                result = await UserManager.CreateAsync(user);
+                var result = await UserManager.CreateAsync(user);
 
                 if (!result.Succeeded)
                 {
@@ -249,7 +230,10 @@ namespace TextIt.Controllers
             return Ok(token);
         }
 
-
+        /// <summary>
+        /// Dispose this object
+        /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && _userManager != null)

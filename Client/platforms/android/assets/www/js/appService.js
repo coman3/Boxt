@@ -1,23 +1,64 @@
-app.service("BoxtService", function ($rootScope, $http, $location) {
+app.service("BoxtService", function ($rootScope, $http, $location, $timeout, BoxtNotifyService, BoxtGameService) {
     var scope = this;
     var facebookAuth = null;
-
-    this.baseUrl = "http://192.168.0.17:1234/";
+    $rootScope.BoxtService = this;
+    this.baseUrl = hostAddress;
     this.accessData = null;
     this.loggedIn = false;
     this.userInfo = null;
+    this.getUserId = function () { return scope.userInfo.Id; };
+    this.userFriends = null;
     this.hub = null;
     this.hubConnected = false;
     this.navDisabled = false;
     this.backPressAction = function (event) { event.preventDefault = true; }
     this.hub = $.connection.lobbyHub;
     this.hub.client.serverMessage = function (message) {
-        console.log(message);
         $rootScope.$broadcast("hub_onServerMessage", message);
     };
+
+    this.hub.client.update = function (state) {
+        if (state.Error != null) {
+            if (!State.Error.Connected) {
+                onDisconnected();
+                return;
+            }
+        }
+        if (!BoxtNotifyService.OnServerMessage(state)) {
+            $rootScope.$broadcast("hub_onStateUpdate", state);
+        }
+    };
+
+    $.connection.hub.disconnected(onDisconnected);
+
+    function onDisconnected() {
+        scope.hubConnected = false;
+        alert('Whoops... Looks like you have disconnected! Reconnecting...');
+        $timeout(function () {
+            scope.navigate("");
+        }, 3000);
+    }
     document.addEventListener("deviceready", function () {
-        scope.hideStatusBar();
-    }, false)
+        //scope.hideStatusBar();
+        navigator.splashscreen.hide();
+
+        if (AdMob) {
+            AdMob.createBanner({
+                adId: "ca-app-pub-6817563318321584/8299036356",
+                position: AdMob.AD_POSITION.BOTTOM_CENTER,
+                isTesting: true, // TODO: remove this line when release
+                overlap: false,
+                offsetTopBar: false,
+                bgColor: 'black'
+            });
+            AdMob.prepareInterstitial({
+                adId: "ca-app-pub-6817563318321584/1973301150",
+                isTesting: true, // TODO: remove this line when release
+                autoShow: true
+            });
+        }
+
+    }, false);
 
 
     if (localStorage.getObject("appAuth") != null) {
@@ -29,7 +70,8 @@ app.service("BoxtService", function ($rootScope, $http, $location) {
     //Navigate
     this.navigate = function (location) {
         $location.path("/" + location);
-    }
+        $rootScope.$broadcast("NavigationBarLeft", { hide: true });
+    };
     //Navigation Bar
     this.hideNavigation = function () {
         $rootScope.$broadcast("NavigationBar", {
@@ -53,11 +95,6 @@ app.service("BoxtService", function ($rootScope, $http, $location) {
     this.hideStatusBar = function () {
         StatusBar.hide();
     }
-
-    //Hub Update
-    this.hub.client.update = function (state) {
-        $rootScope.$broadcast("hub_onStateUpdate", state);
-    };
 
     //Login Methods
     this.loginToFacebook = function (callback, callbackError) {
@@ -115,13 +152,29 @@ app.service("BoxtService", function ($rootScope, $http, $location) {
             method: "GET",
         }).then(callback, callbackError);
     }
+
     this.loadUserData = function (callback, callbackError) {
         $http({
             url: scope.baseUrl + "api/Account/UserInfo",
             method: "GET"
         }).then(function (success) {
             scope.userInfo = success.data;
-            callback(scope.userInfo);
+            BoxtGameService.LoadAll(function (success) {
+                callback(scope.userInfo);
+            }, function (error) {
+                callbackError(error);
+            });
+        }, function (error) {
+            callbackError(error);
+        });
+    };
+    this.loadUserFriends = function (callback, callbackError) {
+        $http({
+            url: scope.baseUrl + "api/Account/Friends",
+            method: "GET"
+        }).then(function (success) {
+            scope.userFriends = success.data;
+            callback(scope.userFriends);
         }, function (error) {
             callbackError(error);
         });
@@ -141,42 +194,20 @@ app.service("BoxtService", function ($rootScope, $http, $location) {
                     listener();
                 }
             });
-            $.connection.hub.start(function () {
+            $.connection.hub.start().done(function () {
                 scope.hub.server.login(scope.accessData.access_token);
             });
             return true;
         }
     };
 
-    this.listRunningGames = function (filter, callback, callbackError) {
-        $http({
-            url: scope.baseUrl + "api/Game/ListInProgress" + (filter == null ? "" : ("?gameType=" + filter)),
-            method: "GET"
-        }).then(function (success) {
-            callback(success.data);
-        }, function (error) {
-            callbackError(error);
-        });
-    }
-
-    this.listGames = function (filter, callback, callbackError) {
-        $http({
-            url: scope.baseUrl + "api/Game/List" + (filter == null ? "" : ("?gameType=" + filter)),
-            method: "GET"
-        }).then(function (success) {
-            callback(success.data);
-        }, function (error) {
-            callbackError(error);
-        });
-    }
     this.logout = function () {
         scope.loggedIn = false;
         $http.defaults.headers.common.Authorization = null;
         scope.accessData = null;
-        facebookConnectPlugin.logout();R
+        facebookConnectPlugin.logout();
         localStorage.setObject("appAuth", null);
     };
-
 });
 
 function NotAuthorizedException() {
